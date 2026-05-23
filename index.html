@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_62.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_63.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -143,6 +143,8 @@
   .amount-pos { color: var(--green); font-weight: 600; }
   .amount-neg { color: var(--red); font-weight: 600; }
 </style>
+<script src="./index_files/qrcode.min.js.indir"></script>
+<script src="./index_files/html5-qrcode.min.js.indir"></script>
 </head>
 <body>
 
@@ -347,7 +349,10 @@
       <div class="card" style="margin-bottom:14px">
         <div class="card-header">
           <span class="card-title">🛒 Malzemeler</span>
-          <button class="btn sm primary" onclick="malzemeEkle()">+ Malzeme Ekle</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="qrOkuyucuAc()">📷 QR Okut</button>
+            <button class="btn sm primary" onclick="malzemeEkle()">+ Malzeme Ekle</button>
+          </div>
         </div>
         <table>
           <thead><tr><th>Malzeme</th><th>Adet</th><th>Fiyat (₺)</th><th></th></tr></thead>
@@ -531,6 +536,34 @@
       <button class="btn danger" onclick="programSporucuSil()" id="ps-sil-btn">Sil</button>
       <button class="btn" onclick="closeModal(&#39;m-program-sporcu&#39;)">İptal</button>
       <button class="btn primary" onclick="programSporucuKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Okuyucu Modal -->
+<div class="overlay" id="m-qr-okuyucu">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title">📷 QR Kod Okut</span>
+      <button class="btn sm" onclick="qrOkuyucuKapat()">✕</button>
+    </div>
+    <div id="qr-reader" style="width:100%;border-radius:var(--radius-sm);overflow:hidden"></div>
+    <div id="qr-sonuc" style="margin-top:12px;display:none;padding:12px;background:var(--bg);border-radius:var(--radius-sm);text-align:center"></div>
+  </div>
+</div>
+
+<!-- QR Göster Modal -->
+<div class="overlay" id="m-qr-goster">
+  <div class="modal" style="width:320px;text-align:center">
+    <div class="modal-head">
+      <span class="modal-title" id="qr-goster-baslik">QR Kod</span>
+      <button class="btn sm" onclick="closeModal(&#39;m-qr-goster&#39;)">✕</button>
+    </div>
+    <div id="qr-goster-icerik" style="display:flex;justify-content:center;padding:16px"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Bu kodu yazdırıp ürüne yapıştırın</div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn primary" onclick="window.print()">🖨️ Yazdır</button>
+      <button class="btn" onclick="closeModal(&#39;m-qr-goster&#39;)">Kapat</button>
     </div>
   </div>
 </div>
@@ -2062,13 +2095,25 @@ async function loadMalzemeler() {
       tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Malzeme kaydı yok</td></tr>';
       return;
     }
+    // Her malzemenin QR kodunu güncelle (yoksa)
+    for (const m of data) {
+      if (!m.qr_kod) {
+        const qrData = `MALZEME:${m.id}:${m.ad}`;
+        await db('malzemeler', 'PATCH', { qr_kod: qrData }, `?id=eq.${m.id}`);
+        m.qr_kod = qrData;
+      }
+    }
+
     tbody.innerHTML = data.map(m => {
       const azUyari = m.adet <= 1 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
       return `<tr style="${m.adet <= 1 ? 'background:#FFF8F8' : ''}">
         <td style="font-weight:500">${m.ad}${azUyari}</td>
         <td style="font-weight:600;color:${m.adet <= 1 ? 'var(--red)' : 'var(--text)'}">${m.adet}</td>
         <td>${m.fiyat ? m.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
-        <td><button class="btn sm" onclick="malzemeDuzenle('${m.id}')">Düzenle</button></td>
+        <td style="white-space:nowrap">
+          <button class="btn sm" onclick="qrGoster('${m.id}','${m.ad.replace(/'/g,'\'')}','${m.qr_kod||''}')">🔲 QR</button>
+          <button class="btn sm" onclick="malzemeDuzenle('${m.id}')">Düzenle</button>
+        </td>
       </tr>`;
     }).join('');
   } catch(e) { toast('Malzeme yükleme hatası', true); }
@@ -2122,6 +2167,104 @@ async function malzemeSil() {
     await db('malzemeler', 'DELETE', null, `?id=eq.${id}`);
     closeModal('m-malzeme');
     toast('Silindi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata', true); }
+}
+
+// QR KOD
+let qrScanner = null;
+
+function qrGoster(id, ad, qrData) {
+  document.getElementById('qr-goster-baslik').textContent = ad;
+  const icerik = document.getElementById('qr-goster-icerik');
+  icerik.innerHTML = '';
+  const div = document.createElement('div');
+  div.id = 'qr-canvas-' + id;
+  icerik.appendChild(div);
+  openModal('m-qr-goster');
+  setTimeout(() => {
+    new QRCode(div, {
+      text: qrData,
+      width: 200,
+      height: 200,
+      colorDark: '#1a1916',
+      colorLight: '#ffffff',
+    });
+  }, 100);
+}
+
+function qrOkuyucuAc() {
+  openModal('m-qr-okuyucu');
+  document.getElementById('qr-sonuc').style.display = 'none';
+  document.getElementById('qr-sonuc').innerHTML = '';
+  
+  setTimeout(() => {
+    qrScanner = new Html5Qrcode('qr-reader');
+    qrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      async (decodedText) => {
+        await qrScanner.stop();
+        qrIsle(decodedText);
+      },
+      () => {}
+    ).catch(e => {
+      document.getElementById('qr-sonuc').style.display = 'block';
+      document.getElementById('qr-sonuc').innerHTML = '<div style="color:var(--red)">Kamera erişimi reddedildi</div>';
+    });
+  }, 300);
+}
+
+function qrOkuyucuKapat() {
+  if (qrScanner) {
+    qrScanner.stop().catch(() => {});
+    qrScanner = null;
+  }
+  closeModal('m-qr-okuyucu');
+}
+
+async function qrIsle(kod) {
+  const sonuc = document.getElementById('qr-sonuc');
+  sonuc.style.display = 'block';
+
+  // Format: MALZEME:ID:AD
+  if (!kod.startsWith('MALZEME:')) {
+    sonuc.innerHTML = '<div style="color:var(--red)">⚠️ Geçersiz QR kod</div>';
+    return;
+  }
+
+  const parts = kod.split(':');
+  const malzemeId = parts[1];
+  const malzemeAd = parts.slice(2).join(':');
+
+  try {
+    const data = await db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`);
+    if (!data.length) { sonuc.innerHTML = '<div style="color:var(--red)">Malzeme bulunamadı</div>'; return; }
+    const m = data[0];
+
+    sonuc.innerHTML = `
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">📦 ${m.ad}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn danger" onclick="malzemeAdetDus('${m.id}','${m.ad}',${m.adet})">
+          − 1 Adet Düş
+        </button>
+        <button class="btn" onclick="qrOkuyucuKapat()">İptal</button>
+      </div>`;
+  } catch(e) {
+    sonuc.innerHTML = '<div style="color:var(--red)">Hata: ' + e.message + '</div>';
+  }
+}
+
+async function malzemeAdetDus(id, ad, mevcutAdet) {
+  if (mevcutAdet <= 0) {
+    toast('Stok zaten 0!', true);
+    return;
+  }
+  try {
+    await db('malzemeler', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${id}`);
+    toast(`✓ ${ad} — 1 adet düşüldü (Kalan: ${mevcutAdet - 1})`);
+    qrOkuyucuKapat();
     loadMalzemeler();
   } catch(e) { toast('Hata', true); }
 }
