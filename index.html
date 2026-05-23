@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_65.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_66.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -144,7 +144,7 @@
   .amount-neg { color: var(--red); font-weight: 600; }
 </style>
 <script src="./index_files/qrcode.min.js.indir"></script>
-<script src="./index_files/html5-qrcode.min.js.indir"></script>
+<script src="./index_files/jsQR.min.js.indir"></script>
 </head>
 <body>
 
@@ -250,8 +250,7 @@
       <div class="stats-grid" id="dash-stats">
       <div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">56</div></div>
     </div>
-      <div id="malzeme-uyari" style="background: rgb(252, 235, 235); border: 1px solid rgb(255, 204, 204); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 12px;"><div style="font-size:12px;font-weight:600;color:#A32D2D;margin-bottom:6px">⚠️ Az Kalan Malzemeler</div>
-          <div style="font-size:12px;color:#A32D2D">• Göğüslük: 0 adet kaldı</div><div style="font-size:12px;color:#A32D2D">• Kolluk: 0 adet kaldı</div><div style="font-size:12px;color:#A32D2D">• Ok Çekme Lastiği: 0 adet kaldı</div><div style="font-size:12px;color:#A32D2D">• Parmak İpi: 0 adet kaldı</div><div style="font-size:12px;color:#A32D2D">• Parmaklık: 0 adet kaldı</div></div><div id="yil-kartlari" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <div id="yil-kartlari" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
         <div class="card" style="padding:12px 16px;margin-bottom:0">
           <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2026</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
@@ -658,7 +657,12 @@
       <span class="modal-title">📷 QR Kod Okut</span>
       <button class="btn sm" onclick="qrOkuyucuKapat()">✕</button>
     </div>
-    <div id="qr-reader" style="width:100%;border-radius:var(--radius-sm);overflow:hidden"></div>
+    <div style="position:relative;width:100%;background:#000;border-radius:var(--radius-sm);overflow:hidden">
+      <video id="qr-video" style="width:100%;display:block" playsinline="" autoplay=""></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border:2px solid #7F77DD;border-radius:8px;pointer-events:none"></div>
+    </div>
+    <div style="font-size:12px;color:#aaa;text-align:center;margin-top:8px">QR kodu kare içine getirin</div>
     <div id="qr-sonuc" style="margin-top:12px;display:none;padding:12px;background:var(--bg);border-radius:var(--radius-sm);text-align:center"></div>
   </div>
 </div>
@@ -2304,45 +2308,57 @@ function qrGoster(id, ad, qrData) {
   }, 100);
 }
 
+let qrScanInterval = null;
+
 function qrOkuyucuAc() {
   openModal('m-qr-okuyucu');
   const sonuc = document.getElementById('qr-sonuc');
   sonuc.style.display = 'none';
   sonuc.innerHTML = '';
-  
-  // Önce kamera izni iste
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(stream => {
-      stream.getTracks().forEach(t => t.stop());
-      // İzin alındı, QR okuyucuyu başlat
-      const reader = document.getElementById('qr-reader');
-      reader.innerHTML = '';
-      qrScanner = new Html5Qrcode('qr-reader');
-      qrScanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        async (decodedText) => {
-          await qrScanner.stop().catch(() => {});
-          qrScanner = null;
-          qrIsle(decodedText);
-        },
-        () => {}
-      ).catch(e => {
-        sonuc.style.display = 'block';
-        sonuc.innerHTML = `<div style="color:var(--red)">Kamera başlatılamadı: ${e.message}</div>`;
-      });
-    })
-    .catch(e => {
-      sonuc.style.display = 'block';
-      sonuc.innerHTML = '<div style="color:var(--red)">⚠️ Kamera izni reddedildi. Tarayıcı ayarlarından izin verin.</div>';
-    });
+
+  const video = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+
+  navigator.mediaDevices.getUserMedia({ 
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+  }).then(stream => {
+    video.srcObject = stream;
+    qrScanner = stream;
+    video.play();
+
+    // jsQR kütüphanesi ile QR tara
+    qrScanInterval = setInterval(() => {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert'
+        });
+        if (code) {
+          clearInterval(qrScanInterval);
+          qrScanInterval = null;
+          qrOkuyucuKapat();
+          qrIsle(code.data);
+        }
+      }
+    }, 200);
+  }).catch(e => {
+    sonuc.style.display = 'block';
+    sonuc.innerHTML = `<div style="color:var(--red)">⚠️ Kamera açılamadı: ${e.message}</div>`;
+  });
 }
 
 function qrOkuyucuKapat() {
+  if (qrScanInterval) { clearInterval(qrScanInterval); qrScanInterval = null; }
   if (qrScanner) {
-    qrScanner.stop().catch(() => {});
+    qrScanner.getTracks().forEach(t => t.stop());
     qrScanner = null;
   }
+  const video = document.getElementById('qr-video');
+  if (video) video.srcObject = null;
   closeModal('m-qr-okuyucu');
 }
 
