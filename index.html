@@ -1264,7 +1264,8 @@ async function loadDashboard() {
 function sporcuRow(s, odendi, ay) {
   const odendiVal = odendi && typeof odendi === 'object' ? odendi.odendi : odendi;
   const tutarVal = odendi && typeof odendi === 'object' ? odendi.tutar : null;
-  const rowStyle = odendiVal ? 'background:#E1F5EE;' : '';
+  const gectiVal = odendi && typeof odendi === 'object' ? odendi.gecti : false;
+  const rowStyle = odendiVal ? 'background:#E1F5EE;' : (gectiVal ? 'background:#FFF0F0;' : '');
   const odemeBtn = s.durum === 'aktif' ? `
     <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}')">
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
