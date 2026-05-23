@@ -1776,7 +1776,10 @@ async function setYoklama(dersProgramiId, durum, tarih, btn) {
   renderProgram();
 }
 
-let aktifGun = 'Salı';
+const gunler = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const bugunAdi = gunler[new Date().getDay()];
+const dersProgramiGunler = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+let aktifGun = dersProgramiGunler.includes(bugunAdi) ? bugunAdi : 'Salı';
 
 async function loadProgram() {
   try {
