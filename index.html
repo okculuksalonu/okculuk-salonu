@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_70.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_71.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2611,6 +2611,56 @@ Mevcut stok: ${m.adet} adet
 }
 
 // URL parametresi kontrolü - QR okutunca malzeme düş ekranı
+async function qrMalzemeDusEkrani() {
+  // Önce URL'den kontrol et
+  const params = new URLSearchParams(window.location.search);
+  let malzemeId = params.get('malzeme');
+  
+  // Yoksa localStorage'dan al
+  if (!malzemeId) {
+    malzemeId = localStorage.getItem('bekleyen_malzeme');
+  }
+  
+  if (!malzemeId) return;
+  
+  // Temizle
+  localStorage.removeItem('bekleyen_malzeme');
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  // Biraz bekle - sayfa yüklensin
+  await new Promise(r => setTimeout(r, 800));
+
+  try {
+    const data = await db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`);
+    if (!data.length) { toast('Malzeme bulunamadı', true); return; }
+    const m = data[0];
+    
+    // Onay modalı göster
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999';
+    overlay.innerHTML = `
+      <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;text-align:center;border:1px solid var(--border)">
+        <div style="font-size:32px;margin-bottom:12px">📦</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px">${m.ad}</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="btn primary" id="qr-onay-btn" style="flex:1">✓ 1 Adet Düş</button>
+          <button class="btn" id="qr-iptal-btn" style="flex:1">İptal</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    
+    document.getElementById('qr-onay-btn').onclick = async () => {
+      document.body.removeChild(overlay);
+      await db('malzemeler', 'PATCH', { adet: m.adet - 1 }, `?id=eq.${malzemeId}`);
+      toast(`✓ ${m.ad} — 1 adet düşüldü (Kalan: ${m.adet - 1})`);
+    };
+    document.getElementById('qr-iptal-btn').onclick = () => {
+      document.body.removeChild(overlay);
+    };
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
 async function qrUrlKontrol() {
   const params = new URLSearchParams(window.location.search);
   const malzemeId = params.get('malzeme');
