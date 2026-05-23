@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_69.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_70.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -147,7 +147,7 @@
 </head>
 <body>
 
-<div id="login-screen">
+<div id="login-screen" style="display: none;">
   <div class="login-box">
     <div class="login-logo">
       <div class="login-logo-icon">
@@ -162,12 +162,12 @@
       <label>Şifre</label>
       <input id="login-pass" type="password" placeholder="••••••••••••••••" autocomplete="off">
     </div>
-    <button class="login-btn" onclick="doLogin()">Giriş Yap</button>
+    <button class="login-btn" onclick="doLogin()" disabled="">Giriş yapılıyor...</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<div class="sidebar" style="display:none">
+<div class="sidebar" style="display: flex;">
   <div class="logo">
     <div class="logo-icon">
       <svg viewBox="0 0 24 24"><path d="M12 2L2 12h3v9h6v-6h2v6h6v-9h3L12 2z"></path></svg>
@@ -210,8 +210,8 @@
   </nav>
   <div class="sidebar-footer">
     <div class="conn-status">
-      <div class="conn-dot" id="conn-dot"></div>
-      <span id="conn-text">Bağlanıyor...</span>
+      <div class="conn-dot ok" id="conn-dot"></div>
+      <span id="conn-text">Bağlı</span>
     </div>
     <button class="nav-btn" onclick="doLogout()" style="margin-top:8px;color:var(--red)">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -220,7 +220,7 @@
   </div>
 </div>
 
-<div class="main" style="display:none">
+<div class="main" style="display: flex;">
   <div class="topbar">
     <div>
       <div class="topbar-title" id="page-title">Genel Bakış</div>
@@ -237,7 +237,7 @@
         <button class="btn sm" onclick="secAy(2,this)">Şubat</button>
         <button class="btn sm" onclick="secAy(3,this)">Mart</button>
         <button class="btn sm" onclick="secAy(4,this)">Nisan</button>
-        <button class="btn sm" onclick="secAy(5,this)">Mayıs</button>
+        <button class="btn sm primary" onclick="secAy(5,this)">Mayıs</button>
         <button class="btn sm" onclick="secAy(6,this)">Haziran</button>
         <button class="btn sm" onclick="secAy(7,this)">Temmuz</button>
         <button class="btn sm" onclick="secAy(8,this)">Ağustos</button>
@@ -247,13 +247,123 @@
         <button class="btn sm" onclick="secAy(12,this)">Aralık</button>
       </div>
       <div class="stats-grid" id="dash-stats">
-        <div class="loading"><div class="spinner"></div> Yükleniyor...</div>
-      </div>
-      <div id="yil-kartlari" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+      <div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">56</div></div>
+    </div>
+      <div id="yil-kartlari" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2026</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">56.500 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">35.155,21 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:var(--green)">21.344,79 ₺</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">55.400 ₺</span>
+        </div>
+          <div style="border-bottom:1px solid var(--border)">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;;this.querySelector(&#39;.gchevron&#39;).style.transform=this.querySelector(&#39;.gchevron&#39;).style.transform===&#39;rotate(180deg)&#39;?&#39;&#39;:&#39;rotate(180deg)&#39;" style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
+              <span style="color:var(--muted)">Diğer <span class="gchevron" style="display:inline-block;transition:transform .2s">▼</span></span>
+              <span style="color:var(--green);font-weight:500">1.100 ₺</span>
+            </div>
+            <div style="display:none;padding:4px 0 4px 12px">
+              <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">Malzeme Satışı</span>
+                  <span style="color:var(--green)">+1.100 ₺</span>
+                </div>
+            </div>
+          </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Kira</span>
+            <span style="color:var(--red);font-weight:500">13.000 ₺</span>
+          </div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Koray Öğüt Pay</span>
+            <span style="color:var(--red);font-weight:500">7.954 ₺</span>
+          </div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Sigorta</span>
+            <span style="color:var(--red);font-weight:500">10.157 ₺</span>
+          </div>
+          <div style="border-bottom:1px solid var(--border)">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;;this.querySelector(&#39;.chevron&#39;).style.transform=this.querySelector(&#39;.chevron&#39;).style.transform===&#39;rotate(180deg)&#39;?&#39;&#39;:&#39;rotate(180deg)&#39;" style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
+              <span style="color:var(--muted)">Diğer <span class="chevron" style="display:inline-block;transition:transform .2s">▼</span></span>
+              <span style="color:var(--red);font-weight:500">4.044,21 ₺</span>
+            </div>
+            <div style="display:none;padding:4px 0 4px 12px">
+              
+                <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">-</span>
+                  <span style="color:var(--red)">2.006,61 ₺</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">-</span>
+                  <span style="color:var(--red)">2.037,6 ₺</span>
+                </div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2025</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">66.200 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">16.737 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:var(--green)">49.463 ₺</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">66.200 ₺</span>
+        </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Kira</span>
+            <span style="color:var(--red);font-weight:500">9.000 ₺</span>
+          </div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Sigorta</span>
+            <span style="color:var(--red);font-weight:500">7.737 ₺</span>
+          </div>
+          </div>
+        </div>
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2024</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">39.765 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">12.901 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:var(--green)">26.864 ₺</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">39.765 ₺</span>
+        </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Sigorta</span>
+            <span style="color:var(--red);font-weight:500">6.901 ₺</span>
+          </div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Kira</span>
+            <span style="color:var(--red);font-weight:500">6.000 ₺</span>
+          </div>
+          </div>
+        </div></div>
       <div class="two-col">
         <div class="card">
           <div class="card-header"><span class="card-title">Bekleyen Ödemeler</span></div>
-          <div id="dash-odemeler"><div class="loading"><div class="spinner"></div></div></div>
+          <div id="dash-odemeler"><div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Bekleyen ödeme yok</div></div>
         </div>
       </div>
     </div>
@@ -2412,6 +2522,11 @@ async function doLogin() {
   const errEl = document.getElementById('login-err');
   const btn = document.querySelector('.login-btn');
   if (!p) { errEl.textContent = 'Şifre giriniz.'; return; }
+
+  // URL'deki malzeme parametresini kaydet
+  const params = new URLSearchParams(window.location.search);
+  const malzemeId = params.get('malzeme');
+  if (malzemeId) localStorage.setItem('bekleyen_malzeme', malzemeId);
   
   btn.textContent = 'Giriş yapılıyor...';
   btn.disabled = true;
