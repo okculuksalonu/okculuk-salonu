@@ -2645,6 +2645,8 @@ async function doLogin() {
     if (data.access_token) {
       localStorage.setItem('auth', 'ok');
       localStorage.setItem('token', data.access_token);
+      localStorage.setItem('son_aktivite', Date.now());
+      localStorage.setItem('son_aktivite', Date.now());
       document.getElementById('login-screen').style.display = 'none';
       document.querySelector('.sidebar').style.display = 'flex';
       document.querySelector('.main').style.display = 'flex';
@@ -2830,6 +2832,30 @@ if (__varyantParam) {
   localStorage.setItem('bekleyen_varyant', __varyantParam);
   window.history.replaceState({}, document.title, window.location.pathname);
 }
+
+// Auth kontrolü - 1 saat hareketsizlik
+if (localStorage.getItem('auth') === 'ok') {
+  const sonAktivite = parseInt(localStorage.getItem('son_aktivite') || '0');
+  const birSaat = 60 * 60 * 1000;
+  if (Date.now() - sonAktivite > birSaat) {
+    localStorage.removeItem('auth');
+    localStorage.removeItem('token');
+    localStorage.removeItem('son_aktivite');
+  } else {
+    localStorage.setItem('son_aktivite', Date.now());
+    document.getElementById('login-screen').style.display = 'none';
+    document.querySelector('.sidebar').style.display = 'flex';
+    document.querySelector('.main').style.display = 'flex';
+    init();
+  }
+}
+
+// Aktiviteyi takip et - her tıklamada güncelle
+document.addEventListener('click', () => {
+  if (localStorage.getItem('auth') === 'ok') {
+    localStorage.setItem('son_aktivite', Date.now());
+  }
+});
 </script>
 </body>
 </html>
