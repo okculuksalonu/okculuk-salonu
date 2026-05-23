@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_72.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_73.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2595,6 +2595,15 @@ Mevcut stok: ${m.adet} adet
 }
 
 // Sayfa açılınca her zaman şifre sor
+// URL'deki malzeme parametresini HEMEN kaydet - sayfa yüklenir yüklenmez
+(function() {
+  const _p = new URLSearchParams(window.location.search);
+  const _m = _p.get('malzeme');
+  if (_m) {
+    localStorage.setItem('bekleyen_malzeme', _m);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+})();
 </script>
 
 
