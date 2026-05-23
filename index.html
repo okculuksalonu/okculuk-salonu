@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/Lenovo/Downloads/okculuk-salonu_15.html -->
+<!-- saved from url=(0056)file:///C:/Users/Lenovo/Downloads/okculuk-salonu_16.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -629,7 +629,7 @@ const SUPABASE_URL = 'https://mwjbgdlyiboxrpnrofmf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_URDdKxrcbar6cW4t__RD8Q_-KRVT7Kh';
 
 function getHeaders() {
-  const token = sessionStorage.getItem('token') || SUPABASE_KEY;
+  const token = localStorage.getItem('token') || SUPABASE_KEY;
   return {
     'Content-Type': 'application/json',
     'apikey': SUPABASE_KEY,
@@ -2062,8 +2062,8 @@ async function doLogin() {
     const data = await response.json();
     
     if (data.access_token) {
-      sessionStorage.setItem('auth', 'ok');
-      sessionStorage.setItem('token', data.access_token);
+      localStorage.setItem('auth', 'ok');
+      localStorage.setItem('token', data.access_token);
       document.getElementById('login-screen').style.display = 'none';
       document.querySelector('.sidebar').style.display = 'flex';
       document.querySelector('.main').style.display = 'flex';
@@ -2082,7 +2082,7 @@ async function doLogin() {
 }
 
 function doLogout() {
-  sessionStorage.removeItem('auth');
+  localStorage.removeItem('auth'); localStorage.removeItem('token');
   location.reload();
 }
 
