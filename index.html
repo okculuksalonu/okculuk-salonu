@@ -433,7 +433,7 @@
       <div class="form-group full"><label>Ad Soyad</label><input id="d2-ad" type="text" placeholder="Ad Soyad"></div>
       <div class="form-group"><label>Doğum Tarihi</label><input id="d2-dogum" type="date"></div>
       <div class="form-group"><label>Başlangıç Tarihi</label><input id="d2-baslangic" type="date"></div>
-      <div class="form-group"><label>İlk Ödeme Tarihi</label><input id="d2-odeme-gunu" type="date" placeholder="Boşsa başlangıç tarihi baz alınır"></div>
+      <div class="form-group"><label>Ödeme Öteleme Tarihi</label><input id="d2-odeme-gunu" type="date" placeholder="Boşsa başlangıç tarihi baz alınır"></div>
       <div class="form-group"><label>Telefon</label><input id="d2-tel" type="tel" placeholder="05xx xxx xx xx"></div>
       <div class="form-group"><label>Aylık Ücret (₺)</label><input id="d2-ucret" type="number" placeholder="1500"></div>
       <div class="form-group"><label>Durum</label><select id="d2-durum"><option value="aktif">Aktif</option><option value="pasif">Pasif</option></select></div>
@@ -1451,14 +1451,8 @@ function detaySporcu(id) {
   document.getElementById('d2-ad').value = s.ad_soyad || '';
   document.getElementById('d2-dogum').value = s.dogum_tarihi || '';
   document.getElementById('d2-baslangic').value = s.baslangic_tarihi || '';
-  // Ödeme gününü tarihe çevir (gün sayısını bu ayın tarihi olarak göster)
-  if (s.odeme_gunu) {
-    const simdi = new Date();
-    const tarihStr = `${simdi.getFullYear()}-${String(simdi.getMonth()+1).padStart(2,'0')}-${String(s.odeme_gunu).padStart(2,'0')}`;
-    document.getElementById('d2-odeme-gunu').value = tarihStr;
-  } else {
-    document.getElementById('d2-odeme-gunu').value = '';
-  }
+  // Öteleme tarihini göster
+  document.getElementById('d2-odeme-gunu').value = s.oteleme_tarihi || '';
   document.getElementById('d2-tel').value = s.telefon || '';
   document.getElementById('d2-ucret').value = s.aylik_ucret || '';
   document.getElementById('d2-durum').value = s.durum || 'aktif';
@@ -1526,8 +1520,9 @@ async function saveDetay() {
     odeme_gunu: (() => {
       const val = document.getElementById('d2-odeme-gunu').value;
       if (!val) return null;
-      return new Date(val).getDate(); // Tarihten günü çıkar
+      return new Date(val).getDate();
     })(),
+    oteleme_tarihi: document.getElementById('d2-odeme-gunu').value || null,
     notlar: document.getElementById('d2-notlar').value || null,
     ekipmanlar,
   };
