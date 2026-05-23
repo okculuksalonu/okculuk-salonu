@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_77.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_78.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2152,15 +2152,19 @@ async function loadMalzemeler() {
       const azUyari = toplamAdet <= 1 && mvaryantlar.length > 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : 
                       m.adet <= 1 && mvaryantlar.length === 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
       
-      const varyantRows = mvaryantlar.map(v => `
-        <tr style="background:#FAFAF8">
+      const varyantRows = mvaryantlar.map(v => {
+        const qrUrl = v.qr_kod || `https://okculuksalonu.github.io/okculuk-salonu?varyant=${v.id}`;
+        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(qrUrl)}&margin=4`;
+        return `<tr style="background:#FAFAF8">
           <td style="padding-left:24px;font-size:12px;color:var(--muted)">↳ ${v.marka}</td>
           <td style="font-size:12px">${v.adet}</td>
           <td style="font-size:12px">${v.fiyat ? v.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
-          <td style="white-space:nowrap">
+          <td style="white-space:nowrap;display:flex;align-items:center;gap:8px">
+            <img src="${qrImg}" style="width:40px;height:40px;cursor:pointer;border-radius:4px" onclick="varyantQrGoster('${v.id}','${v.marka}','${m.ad}',this.src.replace('80x80','200x200'))" title="QR Göster">
             <button class="btn sm" onclick="varyantDuzenle('${v.id}','${m.id}')">Düzenle</button>
           </td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
 
       return `<tr>
         <td style="font-weight:500">${m.ad}${azUyari}</td>
@@ -2267,8 +2271,18 @@ async function varyantKaydet() {
   };
   if (!body.marka) { toast('Marka adı zorunlu', true); return; }
   try {
-    if (id) await db('malzeme_varyantlar', 'PATCH', body, `?id=eq.${id}`);
-    else await db('malzeme_varyantlar', 'POST', body);
+    let varyantId = id;
+    if (id) {
+      await db('malzeme_varyantlar', 'PATCH', body, `?id=eq.${id}`);
+    } else {
+      const result = await db('malzeme_varyantlar', 'POST', body);
+      if (result && result[0]) varyantId = result[0].id;
+    }
+    // QR kod URL'si oluştur ve kaydet
+    if (varyantId) {
+      const qrData = `https://okculuksalonu.github.io/okculuk-salonu?varyant=${varyantId}`;
+      await db('malzeme_varyantlar', 'PATCH', { qr_kod: qrData }, `?id=eq.${varyantId}`);
+    }
     closeModal('m-varyant');
     toast('Kaydedildi');
     loadMalzemeler();
@@ -2429,6 +2443,13 @@ async function qrIsle(kod) {
   } catch(e) {
     sonuc.innerHTML = '<div style="color:var(--red)">Hata: ' + e.message + '</div>';
   }
+}
+
+function varyantQrGoster(id, marka, malzemeAd, qrSrc) {
+  document.getElementById('qr-goster-baslik').textContent = `${malzemeAd} — ${marka}`;
+  const icerik = document.getElementById('qr-goster-icerik');
+  icerik.innerHTML = `<img src="${qrSrc}" style="width:200px;height:200px;border-radius:8px">`;
+  openModal('m-qr-goster');
 }
 
 async function varyantSatOverlay(varyantId, marka, mevcutAdet, fiyat, malzemeAd) {
@@ -2637,29 +2658,8 @@ async function init() {
   }
   loadDashboard();
 
-  // Bekleyen malzeme var mı kontrol et (QR okutulduktan sonra giriş yapıldıysa)
-  const bekleyen = localStorage.getItem('bekleyen_malzeme');
-  if (bekleyen) {
-    localStorage.removeItem('bekleyen_malzeme');
-    setTimeout(async () => {
-      try {
-        const data = await db('malzemeler', 'GET', null, `?id=eq.${bekleyen}&select=*`);
-        if (!data.length) return;
-        const m = data[0];
-        const onay = confirm(`📦 ${m.ad}
-Mevcut stok: ${m.adet} adet
-
-1 adet düşülsün mü?`);
-        if (onay) {
-          await db('malzemeler', 'PATCH', { adet: m.adet - 1 }, `?id=eq.${bekleyen}`);
-          toast(`✓ ${m.ad} — 1 adet düşüldü (Kalan: ${m.adet - 1})`);
-        }
-      } catch(e) {}
-    }, 1000);
-  }
-
-  // URL'de malzeme parametresi var mı
-  await qrUrlKontrol();
+  // Bekleyen malzeme var mı - varyant destekli
+  setTimeout(() => qrMalzemeDusEkrani(), 1500);
 }
 
 // Sayfa yüklenince URL parametresini kontrol et
@@ -2677,8 +2677,49 @@ async function qrMalzemeDusEkrani() {
   // Önce URL'den kontrol et
   const params = new URLSearchParams(window.location.search);
   let malzemeId = params.get('malzeme');
+  const varyantId = params.get('varyant') || localStorage.getItem('bekleyen_varyant');
   
-  // Yoksa localStorage'dan al
+  // Varyant ID varsa direkt varyant sat
+  if (varyantId) {
+    localStorage.removeItem('bekleyen_varyant');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    await new Promise(r => setTimeout(r, 800));
+    try {
+      const vData = await db('malzeme_varyantlar', 'GET', null, `?id=eq.${varyantId}&select=*`);
+      if (!vData.length) { toast('Varyant bulunamadı', true); return; }
+      const v = vData[0];
+      const mData = await db('malzemeler', 'GET', null, `?id=eq.${v.malzeme_id}&select=ad`);
+      const malzemeAd = mData[0]?.ad || '';
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+      overlay.innerHTML = `
+        <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:32px;margin-bottom:12px">📦</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">${malzemeAd}</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:4px">${v.marka}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Stok: <strong>${v.adet}</strong> adet</div>
+          ${v.fiyat > 0 ? `<div style="font-size:15px;font-weight:600;color:var(--green);margin-bottom:16px">${v.fiyat.toLocaleString('tr-TR')} ₺</div>` : '<div style="margin-bottom:16px"></div>'}
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn primary" id="var-onay-btn" style="flex:1">✓ Sat & Düş</button>
+            <button class="btn" id="var-iptal-btn" style="flex:1">İptal</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('var-onay-btn').onclick = async () => {
+        overlay.remove();
+        await db('malzeme_varyantlar', 'PATCH', { adet: v.adet - 1 }, `?id=eq.${varyantId}`);
+        if (v.fiyat > 0) {
+          await db('gelir_gider', 'POST', { tarih: new Date().toISOString().split('T')[0], aciklama: `${malzemeAd} - ${v.marka} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: v.fiyat });
+        }
+        toast(`✓ ${v.marka} satıldı! ${v.fiyat > 0 ? v.fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+      };
+      document.getElementById('var-iptal-btn').onclick = () => overlay.remove();
+    } catch(e) { toast('Hata: ' + e.message, true); }
+    return;
+  }
+
+  // Yoksa localStorage'dan malzeme al
   if (!malzemeId) {
     malzemeId = localStorage.getItem('bekleyen_malzeme');
   }
@@ -2751,19 +2792,21 @@ async function qrMalzemeDusEkrani() {
 }
 
 async function qrUrlKontrol() {
-  // Artık qrMalzemeDusEkrani hallediyor
+  // Devre dışı - qrMalzemeDusEkrani kullanılıyor
 }
 
-// Sayfa açılınca her zaman şifre sor
-// URL'deki malzeme parametresini HEMEN kaydet - sayfa yüklenir yüklenmez
-(function() {
-  const _p = new URLSearchParams(window.location.search);
-  const _m = _p.get('malzeme');
-  if (_m) {
-    localStorage.setItem('bekleyen_malzeme', _m);
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-})();
+// URL'deki malzeme parametresini HEMEN kaydet
+const __urlParams = new URLSearchParams(window.location.search);
+const __malzemeParam = __urlParams.get('malzeme');
+const __varyantParam = __urlParams.get('varyant');
+if (__malzemeParam) {
+  localStorage.setItem('bekleyen_malzeme', __malzemeParam);
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+if (__varyantParam) {
+  localStorage.setItem('bekleyen_varyant', __varyantParam);
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
 </script>
 
 
