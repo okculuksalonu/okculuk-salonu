@@ -2052,7 +2052,8 @@ async function programSporucuSil() {
 // GELİR GİDER
 async function loadGelir() {
   try {
-    const data = await db('gelir_gider', 'GET', null, '?select=*&order=tarih.desc');
+    const bugun = new Date().toISOString().split('T')[0];
+    const data = await db('gelir_gider', 'GET', null, `?select=*&tarih=lte.${bugun}&order=tarih.desc`);
     const totalGelir = data.filter(g => g.tur === 'gelir').reduce((a, b) => a + Number(b.tutar), 0);
     const totalGider = data.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
     const kar = totalGelir - totalGider;
