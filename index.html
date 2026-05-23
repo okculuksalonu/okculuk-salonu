@@ -1394,7 +1394,17 @@ async function toggleDurum(id, mevcutDurum) {
   const yeniDurum = mevcutDurum === 'aktif' ? 'pasif' : 'aktif';
   try {
     await db('sporcular', 'PATCH', { durum: yeniDurum }, `?id=eq.${id}`);
-    toast(yeniDurum === 'aktif' ? 'Sporcu aktif yapıldı' : 'Sporcu pasif yapıldı');
+    // Pasif yapılınca ders programından da çıkar
+    if (yeniDurum === 'pasif') {
+      const s = sporcularCache.find(x => x.id === id);
+      if (s) {
+        await db('ders_programi', 'DELETE', null, `?sporcu_adi=eq.${encodeURIComponent(s.ad_soyad)}`);
+        programCache = [];
+      }
+      toast('Sporcu pasif yapıldı — ders programından çıkarıldı');
+    } else {
+      toast('Sporcu aktif yapıldı');
+    }
     loadSporcular();
   } catch(e) { toast('Güncelleme hatası', true); }
 }
