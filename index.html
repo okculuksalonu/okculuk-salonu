@@ -1366,9 +1366,15 @@ async function loadSporcular() {
     const bugun = new Date();
     const hedefAyNo = parseInt(hedefAy.split('-')[1]);
     const hedefYilNo = parseInt(hedefAy.split('-')[0]);
+    const gercekBuAyStr = bugun.toISOString().slice(0,7);
 
     // Ödeme günü geçmiş mi kontrol et
     function odemeGunuGectiMi(s) {
+      // Geçmiş ay - hepsi geçmiş say
+      if (hedefAy < gercekBuAyStr) return true;
+      // Gelecek ay - hiçbiri geçmemiş say
+      if (hedefAy > gercekBuAyStr) return false;
+      // Bu ay - gerçek gün kontrolü
       const gun = s.oteleme_tarihi ? new Date(s.oteleme_tarihi).getDate() : (s.odeme_gunu || (s.baslangic_tarihi ? new Date(s.baslangic_tarihi).getDate() : 1));
       const odemeGunuTarihi = new Date(hedefYilNo, hedefAyNo - 1, gun);
       return bugun > odemeGunuTarihi;
