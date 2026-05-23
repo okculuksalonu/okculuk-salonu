@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/Lenovo/Downloads/okculuk-salonu_16.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_62.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -344,6 +344,16 @@
         <div class="card-header"><span class="card-title">🏹 Yay Envanteri</span></div>
         <div id="yay-envanter-tablo"><div class="loading"><div class="spinner"></div></div></div>
       </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title">🛒 Malzemeler</span>
+          <button class="btn sm primary" onclick="malzemeEkle()">+ Malzeme Ekle</button>
+        </div>
+        <table>
+          <thead><tr><th>Malzeme</th><th>Adet</th><th>Fiyat (₺)</th><th></th></tr></thead>
+          <tbody id="malzeme-tbody"><tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
+      </div>
       <div class="card">
         <div class="card-header"><span class="card-title">Diğer Ekipmanlar</span></div>
         <table>
@@ -413,7 +423,7 @@
       <div class="form-group full"><label>Ad Soyad</label><input id="d2-ad" type="text" placeholder="Ad Soyad"></div>
       <div class="form-group"><label>Doğum Tarihi</label><input id="d2-dogum" type="date"></div>
       <div class="form-group"><label>Başlangıç Tarihi</label><input id="d2-baslangic" type="date"></div>
-      <div class="form-group"><label>Ödeme Günü (1-31)</label><input id="d2-odeme-gunu" type="number" min="1" max="31" placeholder="Boşsa başlangıç tarihi günü"></div>
+      <div class="form-group"><label>İlk Ödeme Tarihi</label><input id="d2-odeme-gunu" type="date" placeholder="Boşsa başlangıç tarihi baz alınır"></div>
       <div class="form-group"><label>Telefon</label><input id="d2-tel" type="tel" placeholder="05xx xxx xx xx"></div>
       <div class="form-group"><label>Aylık Ücret (₺)</label><input id="d2-ucret" type="number" placeholder="1500"></div>
       <div class="form-group"><label>Durum</label><select id="d2-durum"><option value="aktif">Aktif</option><option value="pasif">Pasif</option></select></div>
@@ -525,6 +535,27 @@
   </div>
 </div>
 
+<!-- Malzeme Modal -->
+<div class="overlay" id="m-malzeme">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title" id="m-malzeme-title">Malzeme Ekle</span>
+      <button class="btn sm" onclick="closeModal(&#39;m-malzeme&#39;)">✕</button>
+    </div>
+    <input type="hidden" id="malz-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Malzeme Adı</label><input id="malz-ad" type="text" placeholder="Malzeme adı"></div>
+      <div class="form-group"><label>Adet</label><input id="malz-adet" type="number" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Fiyat (₺)</label><input id="malz-fiyat" type="number" placeholder="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger" id="malz-sil-btn" onclick="malzemeSil()" style="display:none">Sil</button>
+      <button class="btn" onclick="closeModal(&#39;m-malzeme&#39;)">İptal</button>
+      <button class="btn primary" onclick="malzemeKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <!-- Ödeme Al Modal -->
 <div class="overlay" id="m-odeme-al">
   <div class="modal" style="width:380px">
@@ -553,6 +584,20 @@
       </div>
     </div>
     <div id="oa-kalan-info" style="display:none;margin-top:10px;padding:8px 12px;background:#FAEEDA;border-radius:var(--radius-sm);font-size:12px;color:#854F0B"></div>
+    
+    <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="oa-ertelendi" onchange="odemeErtelen(this)">
+        <span>📅 Ödeme ertelendi (0 ₺ olarak kaydet)</span>
+      </label>
+      <div id="oa-ertelendi-tarih" style="display:none;margin-top:8px">
+        <div class="form-group">
+          <label>Erteleme Tarihi</label>
+          <input id="oa-ertelendi-tarih-input" type="date">
+        </div>
+      </div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn" onclick="closeModal(&#39;m-odeme-al&#39;)">İptal</button>
       <button class="btn primary" onclick="odemeKaydet()">💰 Kaydet</button>
@@ -712,6 +757,9 @@ function toggleOdeme(sporcuId, mevcutDurum, ay) {
   document.getElementById('oa-tutar').value = beklenenTutar || '';
   document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
   document.getElementById('oa-kalan-info').style.display = 'none';
+  document.getElementById('oa-ertelendi').checked = false;
+  document.getElementById('oa-tutar').disabled = false;
+  document.getElementById('oa-ertelendi-tarih').style.display = 'none';
   openModal('m-odeme-al');
 
   // Tutar değişince kalan borcu göster
@@ -733,19 +781,43 @@ function toggleOdeme(sporcuId, mevcutDurum, ay) {
   };
 }
 
+function odemeErtelen(cb) {
+  const tutarInput = document.getElementById('oa-tutar');
+  const tarihDiv = document.getElementById('oa-ertelendi-tarih');
+  const kalanInfo = document.getElementById('oa-kalan-info');
+  if (cb.checked) {
+    tutarInput.value = '0';
+    tutarInput.disabled = true;
+    tarihDiv.style.display = 'block';
+    kalanInfo.style.display = 'none';
+  } else {
+    tutarInput.disabled = false;
+    tarihDiv.style.display = 'none';
+  }
+}
+
 async function odemeKaydet() {
   const sporcuId = document.getElementById('oa-sporcu-id').value;
   const ay = document.getElementById('oa-ay').value;
-  const tutar = parseFloat(document.getElementById('oa-tutar').value) || 0;
+  const ertelendi = document.getElementById('oa-ertelendi').checked;
+  const tutar = ertelendi ? 0 : (parseFloat(document.getElementById('oa-tutar').value) || 0);
   const tarih = document.getElementById('oa-tarih').value;
-  if (!tutar) { toast('Tutar giriniz', true); return; }
+  
+  if (!ertelendi && !tutar && tutar !== 0) { toast('Tutar giriniz', true); return; }
+
+  const kayit = { 
+    sporcu_id: sporcuId, 
+    ay, 
+    odendi: true, 
+    tutar, 
+    odeme_tarihi: tarih,
+    notlar: ertelendi ? ('Ertelendi' + (document.getElementById('oa-ertelendi-tarih-input').value ? ' → ' + document.getElementById('oa-ertelendi-tarih-input').value : '')) : null
+  };
+
   try {
-    await db('aylik_odeme_durum', 'POST',
-      { sporcu_id: sporcuId, ay, odendi: true, tutar, odeme_tarihi: tarih },
-      '?on_conflict=sporcu_id,ay'
-    );
+    await db('aylik_odeme_durum', 'POST', kayit, '?on_conflict=sporcu_id,ay');
     closeModal('m-odeme-al');
-    toast('✓ Ödeme kaydedildi');
+    toast(ertelendi ? '📅 Ödeme ertelendi olarak kaydedildi' : '✓ Ödeme kaydedildi');
     loadSporcular();
   } catch(e) {
     try {
@@ -754,7 +826,7 @@ async function odemeKaydet() {
         `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`
       );
       closeModal('m-odeme-al');
-      toast('✓ Ödeme kaydedildi');
+      toast(ertelendi ? '📅 Ödeme ertelendi olarak kaydedildi' : '✓ Ödeme kaydedildi');
       loadSporcular();
     } catch(e2) { toast('Hata: ' + e2.message, true); }
   }
@@ -1076,6 +1148,21 @@ async function loadDashboard() {
         </div>`;
     }).join('');
 
+    // Malzeme uyarısı kontrol et
+    try {
+      const malzemeler = await db('malzemeler', 'GET', null, '?adet=lte.1&select=ad,adet');
+      if (malzemeler.length > 0) {
+        const eskiKartlar = document.getElementById('malzeme-uyari');
+        if (eskiKartlar) eskiKartlar.remove();
+        const uyariDiv = document.createElement('div');
+        uyariDiv.id = 'malzeme-uyari';
+        uyariDiv.style.cssText = 'background:#FCEBEB;border:1px solid #FFCCCC;border-radius:var(--radius);padding:12px 16px;margin-bottom:12px';
+        uyariDiv.innerHTML = `<div style="font-size:12px;font-weight:600;color:#A32D2D;margin-bottom:6px">⚠️ Az Kalan Malzemeler</div>
+          ${malzemeler.map(m => `<div style="font-size:12px;color:#A32D2D">• ${m.ad}: ${m.adet} adet kaldı</div>`).join('')}`;
+        document.getElementById('yil-kartlari').before(uyariDiv);
+      }
+    } catch(e) {}
+
     document.getElementById('dash-stats').innerHTML = `
       <div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">${sporcular.length}</div></div>
     `;
@@ -1292,7 +1379,14 @@ function detaySporcu(id) {
   document.getElementById('d2-ad').value = s.ad_soyad || '';
   document.getElementById('d2-dogum').value = s.dogum_tarihi || '';
   document.getElementById('d2-baslangic').value = s.baslangic_tarihi || '';
-  document.getElementById('d2-odeme-gunu').value = s.odeme_gunu || '';
+  // Ödeme gününü tarihe çevir (gün sayısını bu ayın tarihi olarak göster)
+  if (s.odeme_gunu) {
+    const simdi = new Date();
+    const tarihStr = `${simdi.getFullYear()}-${String(simdi.getMonth()+1).padStart(2,'0')}-${String(s.odeme_gunu).padStart(2,'0')}`;
+    document.getElementById('d2-odeme-gunu').value = tarihStr;
+  } else {
+    document.getElementById('d2-odeme-gunu').value = '';
+  }
   document.getElementById('d2-tel').value = s.telefon || '';
   document.getElementById('d2-ucret').value = s.aylik_ucret || '';
   document.getElementById('d2-durum').value = s.durum || 'aktif';
@@ -1357,7 +1451,11 @@ async function saveDetay() {
     veli_telefonu: document.getElementById('d2-veli-tel').value || null,
     veli_meslegi: document.getElementById('d2-veli-meslek').value || null,
     atanan_yay: document.getElementById('d2-atanan-yay').value || null,
-    odeme_gunu: parseInt(document.getElementById('d2-odeme-gunu').value) || null,
+    odeme_gunu: (() => {
+      const val = document.getElementById('d2-odeme-gunu').value;
+      if (!val) return null;
+      return new Date(val).getDate(); // Tarihten günü çıkar
+    })(),
     notlar: document.getElementById('d2-notlar').value || null,
     ekipmanlar,
   };
@@ -1955,9 +2053,83 @@ async function deleteGelir(id) {
   loadGelir();
 }
 
+// MALZEMELER
+async function loadMalzemeler() {
+  try {
+    const data = await db('malzemeler', 'GET', null, '?select=*&order=ad.asc');
+    const tbody = document.getElementById('malzeme-tbody');
+    if (!data.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Malzeme kaydı yok</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map(m => {
+      const azUyari = m.adet <= 1 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
+      return `<tr style="${m.adet <= 1 ? 'background:#FFF8F8' : ''}">
+        <td style="font-weight:500">${m.ad}${azUyari}</td>
+        <td style="font-weight:600;color:${m.adet <= 1 ? 'var(--red)' : 'var(--text)'}">${m.adet}</td>
+        <td>${m.fiyat ? m.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
+        <td><button class="btn sm" onclick="malzemeDuzenle('${m.id}')">Düzenle</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { toast('Malzeme yükleme hatası', true); }
+}
+
+function malzemeEkle() {
+  document.getElementById('m-malzeme-title').textContent = 'Malzeme Ekle';
+  document.getElementById('malz-id').value = '';
+  document.getElementById('malz-ad').value = '';
+  document.getElementById('malz-adet').value = '0';
+  document.getElementById('malz-fiyat').value = '';
+  document.getElementById('malz-sil-btn').style.display = 'none';
+  openModal('m-malzeme');
+}
+
+function malzemeDuzenle(id) {
+  db('malzemeler', 'GET', null, `?id=eq.${id}&select=*`).then(data => {
+    if (!data.length) return;
+    const m = data[0];
+    document.getElementById('m-malzeme-title').textContent = 'Malzeme Düzenle';
+    document.getElementById('malz-id').value = m.id;
+    document.getElementById('malz-ad').value = m.ad;
+    document.getElementById('malz-adet').value = m.adet;
+    document.getElementById('malz-fiyat').value = m.fiyat || '';
+    document.getElementById('malz-sil-btn').style.display = 'inline-flex';
+    openModal('m-malzeme');
+  });
+}
+
+async function malzemeKaydet() {
+  const id = document.getElementById('malz-id').value;
+  const body = {
+    ad: document.getElementById('malz-ad').value.trim(),
+    adet: parseInt(document.getElementById('malz-adet').value) || 0,
+    fiyat: parseFloat(document.getElementById('malz-fiyat').value) || 0,
+  };
+  if (!body.ad) { toast('Malzeme adı zorunlu', true); return; }
+  try {
+    if (id) await db('malzemeler', 'PATCH', body, `?id=eq.${id}`);
+    else await db('malzemeler', 'POST', body);
+    closeModal('m-malzeme');
+    toast('Kaydedildi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+async function malzemeSil() {
+  const id = document.getElementById('malz-id').value;
+  if (!id || !confirm('Bu malzemeyi silmek istiyor musunuz?')) return;
+  try {
+    await db('malzemeler', 'DELETE', null, `?id=eq.${id}`);
+    closeModal('m-malzeme');
+    toast('Silindi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata', true); }
+}
+
 // EKİPMAN
 async function loadEkipman() {
   try {
+    loadMalzemeler();
     const [data, yaylar] = await Promise.all([
       db('ekipmanlar', 'GET', null, '?select=*&order=olusturma_tarihi.desc'),
       db('yay_envanteri', 'GET', null, '?select=*&order=libre.asc')
