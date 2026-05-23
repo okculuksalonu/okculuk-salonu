@@ -1324,6 +1324,11 @@ async function loadSporcular() {
     const tbody = document.getElementById('sporcu-tbody');
     const aktifler = data.filter(s => {
       if (s.durum !== 'aktif') return false;
+      // Öteleme tarihi varsa o aydan önce gösterme
+      if (s.oteleme_tarihi) {
+        const otelemeAy = s.oteleme_tarihi.slice(0, 7);
+        if (hedefAy < otelemeAy) return false;
+      }
       if (!s.baslangic_tarihi) return true;
       return s.baslangic_tarihi.slice(0,7) <= hedefAy;
     });
@@ -1356,12 +1361,28 @@ async function loadSporcular() {
       });
     }
 
-    // Hedef ay sporcuları
-    const odenmemis = aktifler.filter(s => !odemeCache[s.id] || !odemeCache[s.id].odendi);
+    // Bugünün gününü al
+    const bugun = new Date();
+    const hedefAyNo = parseInt(hedefAy.split('-')[1]);
+    const hedefYilNo = parseInt(hedefAy.split('-')[0]);
+
+    // Ödeme günü geçmiş mi kontrol et
+    function odemeGunuGectiMi(s) {
+      const gun = s.oteleme_tarihi ? new Date(s.oteleme_tarihi).getDate() : (s.odeme_gunu || (s.baslangic_tarihi ? new Date(s.baslangic_tarihi).getDate() : 1));
+      const odemeGunuTarihi = new Date(hedefYilNo, hedefAyNo - 1, gun);
+      return bugun > odemeGunuTarihi;
+    }
+
+    // Ödenmemiş - günü geçmiş (kırmızı, üstte)
+    const gecmisOdenmemis = aktifler.filter(s => (!odemeCache[s.id] || !odemeCache[s.id].odendi) && odemeGunuGectiMi(s));
+    // Ödenmemiş - günü gelmemiş (normal, ortada)
+    const bekleyenOdenmemis = aktifler.filter(s => (!odemeCache[s.id] || !odemeCache[s.id].odendi) && !odemeGunuGectiMi(s));
+    // Ödenmiş (yeşil, altta)
     const odenmis = aktifler.filter(s => odemeCache[s.id] && odemeCache[s.id].odendi);
 
     html += `<tr style="background:var(--accent-light)"><td colspan="10" style="font-weight:600;font-size:12px;color:var(--accent-dark);padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">🟢 ${ayBaslikStr(hedefAy)} — Aktif Sporcular (${aktifler.length})</td></tr>`;
-    if (odenmemis.length) html += odenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar }, hedefAy)).join('');
+    if (gecmisOdenmemis.length) html += gecmisOdenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar, gecti: true }, hedefAy)).join('');
+    if (bekleyenOdenmemis.length) html += bekleyenOdenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar, gecti: false }, hedefAy)).join('');
     if (odenmis.length) html += odenmis.map(s => sporcuRow(s, odemeCache[s.id], hedefAy)).join('');
     if (!aktifler.length) html += '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted)">Bu ayda aktif sporcu yok</td></tr>';
 
