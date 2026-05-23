@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_76.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_77.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2751,35 +2751,7 @@ async function qrMalzemeDusEkrani() {
 }
 
 async function qrUrlKontrol() {
-  const params = new URLSearchParams(window.location.search);
-  const malzemeId = params.get('malzeme');
-  if (!malzemeId) return;
-
-  // URL'yi temizle
-  window.history.replaceState({}, document.title, window.location.pathname);
-
-  // Giriş yapılmış mı kontrol et
-  if (localStorage.getItem('auth') !== 'ok') {
-    // Giriş yaptıktan sonra çalıştır
-    localStorage.setItem('bekleyen_malzeme', malzemeId);
-    return;
-  }
-
-  // Malzemeyi getir ve düş ekranı göster
-  try {
-    const data = await db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`);
-    if (!data.length) { toast('Malzeme bulunamadı', true); return; }
-    const m = data[0];
-    
-    const onay = confirm(`📦 ${m.ad}
-Mevcut stok: ${m.adet} adet
-
-1 adet düşülsün mü?`);
-    if (onay) {
-      await db('malzemeler', 'PATCH', { adet: m.adet - 1 }, `?id=eq.${malzemeId}`);
-      toast(`✓ ${m.ad} — 1 adet düşüldü (Kalan: ${m.adet - 1})`);
-    }
-  } catch(e) { toast('Hata: ' + e.message, true); }
+  // Artık qrMalzemeDusEkrani hallediyor
 }
 
 // Sayfa açılınca her zaman şifre sor
