@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)file:///C:/Users/Lenovo/Downloads/okculuk-salonu_9.html -->
+<html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ok Salonu Yönetim</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e8e6e0;
+    --border2: #d4d0c8;
+    --text: #1a1916;
+    --muted: #6b6860;
+    --accent: #7F77DD;
+    --accent-light: #EEEDFE;
+    --accent-dark: #534AB7;
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; height: 100vh; display: flex; overflow: hidden; }
+  #login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; }
+  .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; width: 360px; }
+  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .login-logo-icon { width: 40px; height: 40px; background: var(--accent-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .login-logo-icon svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 2; }
+  .login-title { font-size: 16px; font-weight: 600; }
+  .login-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .login-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .login-group label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .login-group input { padding: 10px 12px; border: 1px solid var(--border2); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit; outline: none; width: 100%; }
+  .login-group input:focus { border-color: var(--accent); }
+  .login-btn { width: 100%; padding: 11px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 6px; transition: background .15s; }
+  .login-btn:hover { background: var(--accent-dark); }
+  .login-err { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; text-align: center; }
+
+  /* SIDEBAR */
+  .sidebar { width: 200px; min-width: 200px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; }
+  .logo { padding: 18px 16px; border-bottom: 1px solid var(--border); }
+  .logo-icon { width: 32px; height: 32px; background: var(--accent-light); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .logo-icon svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; }
+  .logo-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .logo-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  nav { padding: 10px 8px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .nav-btn { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius-sm); border: none; background: none; cursor: pointer; font-size: 13px; color: var(--muted); width: 100%; text-align: left; font-family: inherit; transition: all .15s; }
+  .nav-btn:hover { background: var(--bg); color: var(--text); }
+  .nav-btn.active { background: var(--accent-light); color: var(--accent-dark); font-weight: 500; }
+  .nav-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+  .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); }
+  .conn-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+  .conn-dot.ok { background: var(--green); }
+  .conn-dot.err { background: var(--red); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .content { flex: 1; overflow-y: auto; padding: 20px; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--surface); cursor: pointer; font-size: 12px; color: var(--text); font-family: inherit; transition: all .15s; font-weight: 500; }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-dark); }
+  .btn.danger { color: var(--red); border-color: var(--red); }
+  .btn.danger:hover { background: var(--red-light); }
+  .btn.sm { padding: 4px 9px; font-size: 11px; }
+  .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* CARDS & TABLES */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
+  .stat-val { font-size: 22px; font-weight: 600; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.purple { color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+  .card-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 13px; font-weight: 600; }
+  .card-body { padding: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th { padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg); }
+  .empty-row td { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: var(--green-light); color: #0F6E56; }
+  .badge.red { background: var(--red-light); color: #A32D2D; }
+  .badge.amber { background: var(--amber-light); color: #854F0B; }
+  .badge.gray { background: #f1efe8; color: #5F5E5A; }
+  .badge.purple { background: var(--accent-light); color: var(--accent-dark); }
+
+  /* AVATAR */
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-light); color: var(--accent-dark); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+
+  /* PROGRESS */
+  .progress { height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; width: 100px; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+
+  /* MODAL */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; z-index: 200; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 22px; width: 500px; max-width: 95vw; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .modal-title { font-size: 15px; font-weight: 600; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1/-1; }
+  .form-group label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  /* LOADING */
+  .loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--muted); font-size: 13px; gap: 8px; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 20px; right: 20px; background: var(--text); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .sporcu-row { display: flex; align-items: center; gap: 10px; }
+  .amount-pos { color: var(--green); font-weight: 600; }
+  .amount-neg { color: var(--red); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div id="login-screen" style="display: none;">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      </div>
+      <div>
+        <div class="login-title">Ok Salonu</div>
+        <div class="login-sub">Yönetim Paneli</div>
+      </div>
+    </div>
+    <div class="login-group">
+      <label>Kullanıcı Adı</label>
+      <input id="login-user" type="text" placeholder="Kullanıcı adınız" autocomplete="off">
+    </div>
+    <div class="login-group">
+      <label>Şifre</label>
+      <input id="login-pass" type="password" placeholder="••••••••••••••••" autocomplete="off">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Giriş Yap</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<div class="sidebar" style="display: flex;">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 12h3v9h6v-6h2v6h6v-9h3L12 2z"></path></svg>
+    </div>
+    <div class="logo-name">Ok Salonu</div>
+    <div class="logo-sub">Yönetim Paneli</div>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="goPage(&#39;dashboard&#39;,this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+      Genel Bakış
+    </button>
+    <button class="nav-btn" id="nav-sporcular" onclick="toggleSporcularMenu(this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      Sporcular
+      <svg id="sporcular-chevron" viewBox="0 0 24 24" style="margin-left:auto;width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .2s"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </button>
+    <div id="sporcular-submenu" style="display:none">
+      <button class="nav-btn active" id="nav-aktif" onclick="goSporcular(&#39;aktif&#39;,this)" style="padding-left:28px;font-size:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;flex-shrink:0"></span>
+        Aktif Sporcular
+      </button>
+      <button class="nav-btn" id="nav-pasif" onclick="goSporcular(&#39;pasif&#39;,this)" style="padding-left:28px;font-size:12px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#aaa;display:inline-block;flex-shrink:0"></span>
+        Pasif Sporcular
+      </button>
+    </div>
+    <button class="nav-btn" onclick="goPage(&#39;program&#39;,this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Ders Programı
+    </button>
+    <button class="nav-btn" onclick="goPage(&#39;ekipman&#39;,this)">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      Ekipmanlar
+    </button>
+    <button class="nav-btn" onclick="goPage(&#39;gelir&#39;,this)">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      Gelir &amp; Gider
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="conn-status">
+      <div class="conn-dot ok" id="conn-dot"></div>
+      <span id="conn-text">Bağlı</span>
+    </div>
+    <button class="nav-btn" onclick="doLogout()" style="margin-top:8px;color:var(--red)">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      Çıkış Yap
+    </button>
+  </div>
+</div>
+
+<div class="main" style="display: flex;">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="page-title">Genel Bakış</div>
+      <div class="topbar-sub" id="page-sub">Salon özeti</div>
+    </div>
+    <div id="topbar-actions"></div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="btn sm" onclick="secAy(1,this)">Ocak</button>
+        <button class="btn sm" onclick="secAy(2,this)">Şubat</button>
+        <button class="btn sm" onclick="secAy(3,this)">Mart</button>
+        <button class="btn sm" onclick="secAy(4,this)">Nisan</button>
+        <button class="btn sm primary" onclick="secAy(5,this)">Mayıs</button>
+        <button class="btn sm" onclick="secAy(6,this)">Haziran</button>
+        <button class="btn sm" onclick="secAy(7,this)">Temmuz</button>
+        <button class="btn sm" onclick="secAy(8,this)">Ağustos</button>
+        <button class="btn sm" onclick="secAy(9,this)">Eylül</button>
+        <button class="btn sm" onclick="secAy(10,this)">Ekim</button>
+        <button class="btn sm" onclick="secAy(11,this)">Kasım</button>
+        <button class="btn sm" onclick="secAy(12,this)">Aralık</button>
+      </div>
+      <div class="stats-grid" id="dash-stats">
+      <div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">56</div></div>
+    </div>
+      <div id="yil-kartlari" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2026</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">56.500 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">30.425,21 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:var(--green)">26.074,79 ₺</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">55.400 ₺</span>
+        </div>
+          <div style="border-bottom:1px solid var(--border)">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;;this.querySelector(&#39;.gchevron&#39;).style.transform=this.querySelector(&#39;.gchevron&#39;).style.transform===&#39;rotate(180deg)&#39;?&#39;&#39;:&#39;rotate(180deg)&#39;" style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
+              <span style="color:var(--muted)">Diğer <span class="gchevron" style="display:inline-block;transition:transform .2s">▼</span></span>
+              <span style="color:var(--green);font-weight:500">1.100 ₺</span>
+            </div>
+            <div style="display:none;padding:4px 0 4px 12px">
+              <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">Malzeme Satışı</span>
+                  <span style="color:var(--green)">+1.100 ₺</span>
+                </div>
+            </div>
+          </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Kira</span>
+            <span style="color:var(--red);font-weight:500">13.000 ₺</span>
+          </div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Sigorta</span>
+            <span style="color:var(--red);font-weight:500">10.157 ₺</span>
+          </div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Koray Öğüt Pay</span>
+            <span style="color:var(--red);font-weight:500">3.224 ₺</span>
+          </div>
+          <div style="border-bottom:1px solid var(--border)">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;;this.querySelector(&#39;.chevron&#39;).style.transform=this.querySelector(&#39;.chevron&#39;).style.transform===&#39;rotate(180deg)&#39;?&#39;&#39;:&#39;rotate(180deg)&#39;" style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
+              <span style="color:var(--muted)">Diğer <span class="chevron" style="display:inline-block;transition:transform .2s">▼</span></span>
+              <span style="color:var(--red);font-weight:500">4.044,21 ₺</span>
+            </div>
+            <div style="display:none;padding:4px 0 4px 12px">
+              
+                <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">-</span>
+                  <span style="color:var(--red)">2.006,61 ₺</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">-</span>
+                  <span style="color:var(--red)">2.037,6 ₺</span>
+                </div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2025</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">66.200 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">9.000 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:var(--green)">57.200 ₺</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">66.200 ₺</span>
+        </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Kira</span>
+            <span style="color:var(--red);font-weight:500">9.000 ₺</span>
+          </div>
+          </div>
+        </div>
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Mayıs 2024</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">39.765 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">6.000 ₺</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:var(--green)">33.765 ₺</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">39.765 ₺</span>
+        </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">Kira</span>
+            <span style="color:var(--red);font-weight:500">6.000 ₺</span>
+          </div>
+          </div>
+        </div></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Bekleyen Ödemeler</span></div>
+          <div id="dash-odemeler"><div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Bekleyen ödeme yok</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPORCULAR -->
+    <div class="page" id="page-sporcular">
+      <!-- Ay Seçici Akordiyon -->
+      <div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+        <button onclick="toggleAySecici()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;color:var(--text)">
+          <span>📅 <span id="secili-ay-label">Mayıs 2026</span></span>
+          <span id="ay-secici-icon" style="font-size:11px;color:var(--muted)">▼ Değiştir</span>
+        </button>
+        <div id="ay-secici-panel" style="display:none;padding:14px;border-top:1px solid var(--border)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label>Ay</label>
+              <select id="ay-secici-ay" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%">
+                <option value="01">Ocak</option>
+                <option value="02">Şubat</option>
+                <option value="03">Mart</option>
+                <option value="04">Nisan</option>
+                <option value="05" selected="">Mayıs</option>
+                <option value="06">Haziran</option>
+                <option value="07">Temmuz</option>
+                <option value="08">Ağustos</option>
+                <option value="09">Eylül</option>
+                <option value="10">Ekim</option>
+                <option value="11">Kasım</option>
+                <option value="12">Aralık</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Yıl</label>
+              <select id="ay-secici-yil" style="padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%">
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026" selected="">2026</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn primary" onclick="secAyYil()" style="margin-top:10px;width:100%">Göster</button>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Sporcu</th><th>Başlangıç</th><th>Doğum</th><th>Veli</th><th>Veli Tel.</th><th>Meslek</th><th>Yay</th><th>Ücret</th><th>İşlemler</th><th>Detay</th></tr></thead>
+          <tbody id="sporcu-tbody"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ÖDEMELER -->
+    <div class="page" id="page-odemeler">
+      <div class="card">
+        <table>
+          <thead><tr><th>Sporcu</th><th>Ay</th><th>Tutar</th><th>Vade</th><th>Ödeme Tarihi</th><th>Durum</th><th></th></tr></thead>
+          <tbody id="odeme-tbody"><tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DERS PROGRAMI -->
+    <div class="page" id="page-program">
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+        <button class="btn primary" id="gun-Salı" onclick="filterGun(&#39;Salı&#39;,this)">Salı</button>
+        <button class="btn" id="gun-Çarşamba" onclick="filterGun(&#39;Çarşamba&#39;,this)">Çarşamba</button>
+        <button class="btn" id="gun-Perşembe" onclick="filterGun(&#39;Perşembe&#39;,this)">Perşembe</button>
+        <button class="btn" id="gun-Cuma" onclick="filterGun(&#39;Cuma&#39;,this)">Cuma</button>
+        <button class="btn" id="gun-Cumartesi" onclick="filterGun(&#39;Cumartesi&#39;,this)">Cumartesi</button>
+      </div>
+      <div id="program-content"><div class="loading"><div class="spinner"></div> Yükleniyor...</div></div>
+    </div>
+
+    <!-- GELİR GİDER -->
+    <div class="page" id="page-gelir">
+      <div class="stats-grid" id="gelir-stats"></div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Tarih</th><th>Açıklama</th><th>Kategori</th><th>Tür</th><th>Tutar</th><th></th></tr></thead>
+          <tbody id="gelir-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EKİPMAN -->
+    <div class="page" id="page-ekipman">
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header"><span class="card-title">🏹 Yay Envanteri</span></div>
+        <div id="yay-envanter-tablo"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Diğer Ekipmanlar</span></div>
+        <table>
+          <thead><tr><th>Ekipman</th><th>Adet</th><th>Birim Maliyet</th><th>Toplam</th><th>Alım Tarihi</th><th>Durum</th><th></th></tr></thead>
+          <tbody id="ekipman-tbody"><tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALLER -->
+<!-- Sporcu Modal -->
+<div class="overlay" id="m-sporcu">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="m-sporcu-title">Sporcu Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-sporcu&#39;)">✕</button></div>
+    <input type="hidden" id="s-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Ad Soyad</label><input id="s-ad" type="text" placeholder="Ad Soyad"></div>
+      <div class="form-group"><label>Doğum Tarihi</label><input id="s-dogum" type="date"></div>
+      <div class="form-group"><label>Başlangıç Tarihi</label><input id="s-baslangic" type="date"></div>
+      <div class="form-group"><label>Telefon</label><input id="s-tel" type="tel" placeholder="05xx xxx xx xx"></div>
+      <div class="form-group"><label>Aylık Ücret (₺)</label><input id="s-ucret" type="number" placeholder="1500"></div>
+      <div class="form-group"><label>Durum</label><select id="s-durum"><option value="aktif">Aktif</option><option value="pasif">Pasif</option></select></div>
+      <div class="form-group"><label>Veli Adı Soyadı</label><input id="s-veli-ad" type="text" placeholder="Veli adı"></div>
+      <div class="form-group"><label>Veli Telefonu</label><input id="s-veli-tel" type="tel" placeholder="05xx xxx xx xx"></div>
+      <div class="form-group full"><label>Veli Mesleği</label><input id="s-veli-meslek" type="text" placeholder="Meslek"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-sporcu&#39;)">İptal</button><button class="btn primary" onclick="saveSporcu()">Kaydet</button></div>
+  </div>
+</div>
+
+<!-- Ödeme Modal -->
+<div class="overlay" id="m-odeme">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="m-odeme-title">Ödeme Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-odeme&#39;)">✕</button></div>
+    <input type="hidden" id="o-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Sporcu</label><select id="o-sporcu"></select></div>
+      <div class="form-group"><label>Ay / Dönem</label><input id="o-ay" type="month"></div>
+      <div class="form-group"><label>Tutar (₺)</label><input id="o-tutar" type="number" placeholder="1500"></div>
+      <div class="form-group"><label>Vade Tarihi</label><input id="o-vade" type="date"></div>
+      <div class="form-group"><label>Ödeme Tarihi</label><input id="o-tarih" type="date"></div>
+      <div class="form-group"><label>Durum</label><select id="o-durum"><option value="bekliyor">Bekliyor</option><option value="odendi">Ödendi</option><option value="gecikti">Gecikmiş</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-odeme&#39;)">İptal</button><button class="btn primary" onclick="saveOdeme()">Kaydet</button></div>
+  </div>
+</div>
+
+<!-- Detay Modal -->
+<div class="overlay" id="m-detay">
+  <div class="modal" style="width:580px">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar" id="detay-avatar" style="width:40px;height:40px;font-size:14px"></div>
+        <div>
+          <div class="modal-title" id="detay-baslik">Sporcu Detayı</div>
+          <div style="font-size:12px;color:var(--muted)" id="detay-sub"></div>
+        </div>
+      </div>
+      <button class="btn sm" onclick="closeModal(&#39;m-detay&#39;)">✕</button>
+    </div>
+
+    <input type="hidden" id="d2-id">
+    <div class="form-grid" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+      <div class="form-group full"><label>Ad Soyad</label><input id="d2-ad" type="text" placeholder="Ad Soyad"></div>
+      <div class="form-group"><label>Doğum Tarihi</label><input id="d2-dogum" type="date"></div>
+      <div class="form-group"><label>Başlangıç Tarihi</label><input id="d2-baslangic" type="date"></div>
+      <div class="form-group"><label>Ödeme Günü (1-31)</label><input id="d2-odeme-gunu" type="number" min="1" max="31" placeholder="Boşsa başlangıç tarihi günü"></div>
+      <div class="form-group"><label>Telefon</label><input id="d2-tel" type="tel" placeholder="05xx xxx xx xx"></div>
+      <div class="form-group"><label>Aylık Ücret (₺)</label><input id="d2-ucret" type="number" placeholder="1500"></div>
+      <div class="form-group"><label>Durum</label><select id="d2-durum"><option value="aktif">Aktif</option><option value="pasif">Pasif</option></select></div>
+      <div class="form-group"><label>Atanan Yay</label><select id="d2-atanan-yay"><option value="">-- Yay Seç --</option></select></div>
+      <div class="form-group"><label>Veli Adı Soyadı</label><input id="d2-veli-ad" type="text" placeholder="Veli adı"></div>
+      <div class="form-group"><label>Veli Telefonu</label><input id="d2-veli-tel" type="tel" placeholder="05xx xxx xx xx"></div>
+      <div class="form-group full"><label>Veli Mesleği</label><input id="d2-veli-meslek" type="text" placeholder="Meslek"></div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Ekipmanlar</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px" id="detay-ekipmanlar">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="parmaklık"> Parmaklık</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="kolluk"> Kolluk</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="antrenman_lastiği"> Antrenman Lastiği</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="ok_seti"> Ok Seti</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="sadak"> Sadak</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="yay"> Yay</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="puan_defteri"> Puan Defteri</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="parmak_ipi"> Parmak İpi</label>
+    </div>
+
+    <div style="margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+      <button onclick="toggleGecmisOdemeler()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;color:var(--text)">
+        <span>💳 Geçmiş Ödemeler</span>
+        <span id="gecmis-odeme-icon" style="font-size:11px;color:var(--muted)">▼ Göster</span>
+      </button>
+      <div id="gecmis-odeme-panel" style="display:none;border-top:1px solid var(--border)">
+        <div id="gecmis-odeme-icerik"><div class="loading" style="padding:16px"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+      <button onclick="toggleNotlar()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;color:var(--text)">
+        <span>📝 Notlar</span>
+        <span id="notlar-icon" style="font-size:11px;color:var(--muted)">▼ Göster</span>
+      </button>
+      <div id="notlar-panel" style="display:none;padding:12px;border-top:1px solid var(--border)">
+        <textarea id="d2-notlar" rows="4" style="width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:vertical" placeholder="Sporcu hakkında notlar..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal(&#39;m-detay&#39;)">İptal</button>
+      <button class="btn primary" onclick="saveDetay()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ders Programı Sporcu Düzenle Modal -->
+<div class="overlay" id="m-program-sporcu">
+  <div class="modal" style="width:420px">
+    <div class="modal-head">
+      <span class="modal-title" id="m-ps-title">Sporcu Düzenle</span>
+      <button class="btn sm" onclick="closeModal(&#39;m-program-sporcu&#39;)">✕</button>
+    </div>
+    <input type="hidden" id="ps-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Sporcu Adı</label><input id="ps-ad" type="text" placeholder="Ad Soyad"></div>
+      <div class="form-group"><label>Yaş</label><input id="ps-yas" type="number" placeholder="12"></div>
+      <div class="form-group"><label>Yay</label><input id="ps-yay" type="text" placeholder="24 Metal"></div>
+      <div class="form-group full"><label>Alan</label>
+        <select id="ps-salon">
+          <option value="İç">🏠 İç Alan</option>
+          <option value="Dış">🌿 Dış Alan</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="ps-telafi"> 
+          <span>Telafi dersi (mor renkte görünür)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Taşı bölümü -->
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">📦 Başka Derse Taşı</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Gün</label>
+          <select id="ps-tasi-gun" onchange="updateTasiSaatler(this.value)">
+            <option value="Salı">Salı</option>
+            <option value="Çarşamba">Çarşamba</option>
+            <option value="Perşembe">Perşembe</option>
+            <option value="Cuma">Cuma</option>
+            <option value="Cumartesi">Cumartesi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Saat</label>
+          <select id="ps-tasi-saat"></select>
+        </div>
+        <div class="form-group full">
+          <label>Alan</label>
+          <select id="ps-tasi-salon">
+            <option value="İç">🏠 İç Alan</option>
+            <option value="Dış">🌿 Dış Alan</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="programSporucuTasi()" style="width:100%;justify-content:center;margin-top:8px">📦 Bu Derse Taşı</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn danger" onclick="programSporucuSil()" id="ps-sil-btn">Sil</button>
+      <button class="btn" onclick="closeModal(&#39;m-program-sporcu&#39;)">İptal</button>
+      <button class="btn primary" onclick="programSporucuKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ödeme Al Modal -->
+<div class="overlay" id="m-odeme-al">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title">Ödeme Al</span>
+      <button class="btn sm" onclick="closeModal(&#39;m-odeme-al&#39;)">✕</button>
+    </div>
+    <input type="hidden" id="oa-sporcu-id">
+    <input type="hidden" id="oa-ay">
+    <div style="margin-bottom:14px;padding:12px;background:var(--bg);border-radius:var(--radius-sm)">
+      <div style="font-size:13px;font-weight:500" id="oa-sporcu-ad"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px" id="oa-ay-label"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Beklenen Tutar</label>
+        <div id="oa-beklenen" style="font-size:15px;font-weight:600;color:var(--green);padding:4px 0"></div>
+      </div>
+      <div class="form-group full">
+        <label>Alınan Tutar (₺)</label>
+        <input id="oa-tutar" type="number" placeholder="Tutarı girin">
+      </div>
+      <div class="form-group full">
+        <label>Ödeme Tarihi</label>
+        <input id="oa-tarih" type="date">
+      </div>
+    </div>
+    <div id="oa-kalan-info" style="display:none;margin-top:10px;padding:8px 12px;background:#FAEEDA;border-radius:var(--radius-sm);font-size:12px;color:#854F0B"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal(&#39;m-odeme-al&#39;)">İptal</button>
+      <button class="btn primary" onclick="odemeKaydet()">💰 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ders Modal -->
+<div class="overlay" id="m-ders">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="m-ders-title">Ders Saati Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-ders&#39;)">✕</button></div>
+    <input type="hidden" id="d-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Sporcu</label><select id="d-sporcu"></select></div>
+      <div class="form-group"><label>Toplam Saat</label><input id="d-toplam" type="number" placeholder="20"></div>
+      <div class="form-group"><label>Kullanılan Saat</label><input id="d-kullanilan" type="number" placeholder="0"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-ders&#39;)">İptal</button><button class="btn primary" onclick="saveDers()">Kaydet</button></div>
+  </div>
+</div>
+
+<!-- Gelir/Gider Modal -->
+<div class="overlay" id="m-gelir">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="m-gelir-title">Kayıt Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-gelir&#39;)">✕</button></div>
+    <input type="hidden" id="g-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Tarih</label><input id="g-tarih" type="date"></div>
+      <div class="form-group"><label>Tür</label><select id="g-tur"><option value="gelir">Gelir</option><option value="gider">Gider</option></select></div>
+      <div class="form-group full"><label>Açıklama</label><input id="g-aciklama" type="text" placeholder="Açıklama"></div>
+      <div class="form-group"><label>Kategori</label><select id="g-kategori">
+        <optgroup label="Gelir">
+          <option value="aidat">Aidat</option>
+          <option value="malzeme_satis">Malzeme Satışı</option>
+          <option value="diger_gelir">Diğer Gelir</option>
+        </optgroup>
+        <optgroup label="Gider">
+          <option value="ekipman">Ekipman / Malzeme Alımı</option>
+          <option value="kira">Kira</option>
+          <option value="fatura">Fatura</option>
+          <option value="sigorta">Sigorta</option>
+          <option value="pay">Koray Öğüt Pay</option>
+          <option value="maas">Maaş / Ücret</option>
+          <option value="bakim">Bakım / Onarım</option>
+          <option value="diger">Diğer Gider</option>
+        </optgroup>
+      </select></div>
+      <div class="form-group"><label>Tutar (₺)</label><input id="g-tutar" type="number" placeholder="0"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-gelir&#39;)">İptal</button><button class="btn primary" onclick="saveGelir()">Kaydet</button></div>
+  </div>
+</div>
+
+<!-- Ekipman Modal -->
+<div class="overlay" id="m-ekipman">
+  <div class="modal">
+    <div class="modal-head"><span class="modal-title" id="m-ekipman-title">Ekipman Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-ekipman&#39;)">✕</button></div>
+    <input type="hidden" id="e-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Ekipman Adı</label><input id="e-ad" type="text" placeholder="Ekipman adı"></div>
+      <div class="form-group"><label>Adet</label><input id="e-adet" type="number" placeholder="1"></div>
+      <div class="form-group"><label>Birim Maliyet (₺)</label><input id="e-maliyet" type="number" placeholder="0"></div>
+      <div class="form-group"><label>Alım Tarihi</label><input id="e-tarih" type="date"></div>
+      <div class="form-group full"><label>Durum</label><select id="e-durum"><option value="iyi">İyi</option><option value="yipraniyor">Yıpranıyor</option><option value="bozuk">Bozuk</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-ekipman&#39;)">İptal</button><button class="btn primary" onclick="saveEkipman()">Kaydet</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://mwjbgdlyiboxrpnrofmf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_URDdKxrcbar6cW4t__RD8Q_-KRVT7Kh';
+
+const headers = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Prefer': 'return=representation,resolution=merge-duplicates'
+};
+
+async function db(table, method='GET', body=null, query='') {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  if (method === 'DELETE' || r.status === 204) return null;
+  return r.json();
+}
+
+let sporcularCache = [];
+let odemeCache = {};
+const EN_ERKEN_AY = '2023-06'; // En erken başlangıç ayı
+let seciliSporculAy = null; // null = bu ay
+
+const ayAdlariTR = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function ayBaslikStr(ayStr) {
+  const [yil, ay] = ayStr.split('-');
+  return ayAdlariTR[parseInt(ay)] + ' ' + yil;
+}
+
+function toggleAySecici() {
+  const panel = document.getElementById('ay-secici-panel');
+  const icon = document.getElementById('ay-secici-icon');
+  if (panel.style.display === 'none') {
+    // Mevcut seçili ayı dropdown'lara yansıt
+    const secili = seciliSporculAy || new Date().toISOString().slice(0,7);
+    document.getElementById('ay-secici-yil').value = secili.slice(0,4);
+    document.getElementById('ay-secici-ay').value = secili.slice(5,7);
+    panel.style.display = 'block';
+    icon.textContent = '▲ Kapat';
+  } else {
+    panel.style.display = 'none';
+    icon.textContent = '▼ Değiştir';
+  }
+}
+
+function secAyYil() {
+  const ay = document.getElementById('ay-secici-ay').value;
+  const yil = document.getElementById('ay-secici-yil').value;
+  const ayStr = yil + '-' + ay;
+  seciliSporculAy = ayStr;
+  document.getElementById('secili-ay-label').textContent = ayBaslikStr(ayStr);
+  document.getElementById('ay-secici-panel').style.display = 'none';
+  document.getElementById('ay-secici-icon').textContent = '▼ Değiştir';
+  loadSporcular();
+}
+
+function toggleOdeme(sporcuId, mevcutDurum, ay) {
+  const odendiVal = mevcutDurum && typeof mevcutDurum === 'object' ? mevcutDurum.odendi : mevcutDurum;
+  const tutarVal = mevcutDurum && typeof mevcutDurum === 'object' ? mevcutDurum.tutar : null;
+
+  if (odendiVal) {
+    // Ödendi işaretini geri al
+    odemeGeriAl(sporcuId, ay);
+    return;
+  }
+
+  // Ödeme al modalını aç
+  const s = sporcularCache.find(x => x.id === sporcuId);
+  const hedefAy = ay || new Date().toISOString().slice(0,7);
+  const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const [yil, ayNo] = hedefAy.split('-');
+  const beklenenTutar = tutarVal || (s ? s.aylik_ucret : 0);
+
+  document.getElementById('oa-sporcu-id').value = sporcuId;
+  document.getElementById('oa-ay').value = hedefAy;
+  document.getElementById('oa-sporcu-ad').textContent = s ? s.ad_soyad : '';
+  document.getElementById('oa-ay-label').textContent = ayAdlari[parseInt(ayNo)] + ' ' + yil + ' ödemesi';
+  document.getElementById('oa-beklenen').textContent = beklenenTutar ? beklenenTutar.toLocaleString('tr-TR') + ' ₺' : '-';
+  document.getElementById('oa-tutar').value = beklenenTutar || '';
+  document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
+  document.getElementById('oa-kalan-info').style.display = 'none';
+  openModal('m-odeme-al');
+
+  // Tutar değişince kalan borcu göster
+  document.getElementById('oa-tutar').oninput = function() {
+    const alinan = parseFloat(this.value) || 0;
+    const kalan = beklenenTutar - alinan;
+    const info = document.getElementById('oa-kalan-info');
+    if (kalan > 0) {
+      info.style.display = 'block';
+      info.textContent = `⚠️ ${kalan.toLocaleString('tr-TR')} ₺ eksik ödeme — kalan borç olarak kaydedilecek`;
+    } else if (kalan < 0) {
+      info.style.display = 'block';
+      info.style.background = '#E1F5EE';
+      info.style.color = '#0F6E56';
+      info.textContent = `✓ ${Math.abs(kalan).toLocaleString('tr-TR')} ₺ fazla ödeme`;
+    } else {
+      info.style.display = 'none';
+    }
+  };
+}
+
+async function odemeKaydet() {
+  const sporcuId = document.getElementById('oa-sporcu-id').value;
+  const ay = document.getElementById('oa-ay').value;
+  const tutar = parseFloat(document.getElementById('oa-tutar').value) || 0;
+  const tarih = document.getElementById('oa-tarih').value;
+  if (!tutar) { toast('Tutar giriniz', true); return; }
+  try {
+    await db('aylik_odeme_durum', 'POST',
+      { sporcu_id: sporcuId, ay, odendi: true, tutar, odeme_tarihi: tarih },
+      '?on_conflict=sporcu_id,ay'
+    );
+    closeModal('m-odeme-al');
+    toast('✓ Ödeme kaydedildi');
+    loadSporcular();
+  } catch(e) {
+    try {
+      await db('aylik_odeme_durum', 'PATCH',
+        { odendi: true, tutar, odeme_tarihi: tarih },
+        `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`
+      );
+      closeModal('m-odeme-al');
+      toast('✓ Ödeme kaydedildi');
+      loadSporcular();
+    } catch(e2) { toast('Hata: ' + e2.message, true); }
+  }
+}
+
+async function odemeGeriAl(sporcuId, ay) {
+  const buAy = ay || new Date().toISOString().slice(0,7);
+  try {
+    await db('aylik_odeme_durum', 'PATCH',
+      { odendi: false, odeme_tarihi: null },
+      `?sporcu_id=eq.${sporcuId}&ay=eq.${buAy}`
+    );
+    toast('Ödeme geri alındı');
+    loadSporcular();
+  } catch(e) { toast('Hata', true); }
+}
+
+function initials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString('tr-TR');
+}
+
+function fmtMoney(n) {
+  if (!n && n !== 0) return '-';
+  return Number(n).toLocaleString('tr-TR') + ' ₺';
+}
+
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? '#E24B4A' : '#1a1916';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+const pages = {
+  dashboard: { title: 'Genel Bakış', sub: 'Salon özeti', action: null },
+  sporcular: { title: 'Aktif Sporcular', sub: 'Sporcu ve veli bilgileri', action: () => `<button class="btn primary" onclick="openSporcu()"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Sporcu Ekle</button>` },
+  program: { title: 'Ders Programı', sub: 'Haftalık ders takvimi', action: null },
+  gelir: { title: 'Gelir & Gider', sub: 'Mali takip', action: () => `<button class="btn primary" onclick="openGelir()"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Kayıt Ekle</button>` },
+  ekipman: { title: 'Ekipmanlar', sub: 'Envanter yönetimi', action: () => `<button class="btn primary" onclick="openEkipman()"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ekipman Ekle</button>` },
+};
+
+let currentPage = 'dashboard';
+
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  currentPage = id;
+  const p = pages[id];
+  document.getElementById('page-title').textContent = p.title;
+  document.getElementById('page-sub').textContent = p.sub;
+  document.getElementById('topbar-actions').innerHTML = p.action ? p.action() : '';
+  loadPage(id);
+}
+
+function loadPage(id) {
+  if (id === 'dashboard') loadDashboard();
+  else if (id === 'sporcular') loadSporcular();
+  else if (id === 'odemeler') loadOdemeler();
+  else if (id === 'program') loadProgram();
+  else if (id === 'gelir') loadGelir();
+  else if (id === 'ekipman') loadEkipman();
+}
+
+// DASHBOARD
+let secilenAy = null;
+
+async function hesaplaKorayPay(ayVeriler, ayStr) {
+  // Sadece 2026-04 ve sonrası için
+  if (ayStr < '2026-04') return;
+
+  // Zaten pay kaydı varsa tekrar ekleme
+  const mevcutPay = ayVeriler.find(g => g.kategori === 'pay' && g.tur === 'gider');
+  if (mevcutPay) return;
+
+  // Bir önceki ayın sporcu sayısını baz al
+  const oncekiAy = (() => {
+    const d = new Date(ayStr + '-01');
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().slice(0,7);
+  })();
+
+  try {
+    const sporcuSayisi = await db('aylik_odeme_durum', 'GET', null, `?ay=eq.${oncekiAy}&select=sporcu_id`);
+    const sayi = sporcuSayisi.length;
+
+    let oran = 0;
+    if (sayi >= 61) oran = 0.12;
+    else if (sayi >= 51) oran = 0.11;
+    else if (sayi >= 40) oran = 0.10;
+    else return; // 40'ın altında pay yok
+
+    const gelir = ayVeriler.filter(g => g.tur === 'gelir').reduce((a, b) => a + Number(b.tutar), 0);
+    const gider = ayVeriler.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
+    const kar = gelir - gider;
+    if (kar <= 0) return;
+
+    const pay = Math.round(kar * oran);
+    const yuzde = Math.round(oran * 100);
+    const [yil, ay] = ayStr.split('-');
+    const ayAdlariTR2 = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    const aciklama = `Koray Öğüt Pay - ${ayAdlariTR2[parseInt(ay)]} ${yil} (%${yuzde})`;
+
+    await db('gelir_gider', 'POST', {
+      tarih: ayStr + '-01',
+      aciklama,
+      kategori: 'pay',
+      tur: 'gider',
+      tutar: pay
+    });
+    console.log(`Koray Öğüt pay eklendi: ${pay} ₺ (${yuzde}%)`);
+  } catch(e) {
+    console.error('Pay hesaplama hatası:', e);
+  }
+}
+let sporcuFiltre = 'aktif'; // 'aktif' veya 'pasif'
+
+function toggleSporcularMenu(btn) {
+  const submenu = document.getElementById('sporcular-submenu');
+  const chevron = document.getElementById('sporcular-chevron');
+  if (submenu.style.display === 'none') {
+    submenu.style.display = 'block';
+    chevron.style.transform = 'rotate(180deg)';
+    // Aktif sporcuları göster
+    goSporcular('aktif', document.getElementById('nav-aktif'));
+  } else {
+    submenu.style.display = 'none';
+    chevron.style.transform = '';
+  }
+}
+
+function goSporcular(filtre, btn) {
+  sporcuFiltre = filtre;
+  // Alt menü butonlarını güncelle
+  document.getElementById('nav-aktif').classList.remove('active');
+  document.getElementById('nav-pasif').classList.remove('active');
+  btn.classList.add('active');
+  // Ana nav butonlarını temizle
+  document.querySelectorAll('.nav-btn:not(#nav-aktif):not(#nav-pasif):not(#nav-sporcular)').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-sporcular').classList.add('active');
+  // Başlığı güncelle
+  document.getElementById('page-title').textContent = filtre === 'aktif' ? 'Aktif Sporcular' : 'Pasif Sporcular';
+  document.getElementById('page-sub').textContent = 'Sporcu ve veli bilgileri';
+  document.getElementById('topbar-actions').innerHTML = filtre === 'aktif' ? '<button class="btn primary" onclick="openSporcu()"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Sporcu Ekle</button>' : '';
+  // Sayfayı göster
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-sporcular').classList.add('active');
+  loadSporcular();
+}
+
+function secAy(ayNo, btn) {
+  secilenAy = ayNo;
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  try {
+    const buAyNo = secilenAy || new Date().getMonth() + 1;
+    const buAyStr = String(buAyNo).padStart(2, '0');
+    const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    const ayAdi = ayAdlari[buAyNo];
+
+    // Aktif buton güncelle
+    document.querySelectorAll('#page-dashboard .btn.sm').forEach(b => b.classList.remove('primary'));
+    const btns = document.querySelectorAll('#page-dashboard .btn.sm');
+    if (btns[buAyNo - 1]) btns[buAyNo - 1].classList.add('primary');
+
+    const [sporcular, odemeler, gelirGiderTum] = await Promise.all([
+      db('sporcular', 'GET', null, '?select=*&durum=eq.aktif'),
+      db('odemeler', 'GET', null, '?select=*,sporcular(ad_soyad)&order=vade_tarihi.asc'),
+      db('gelir_gider', 'GET', null, '?select=*')
+    ]);
+
+    // Aynı aydaki kayıtları filtrele
+    const buAyVeriler = gelirGiderTum.filter(g => g.tarih && g.tarih.slice(5,7) === buAyStr);
+
+    // Yıllara göre grupla
+    const yillar = {};
+    buAyVeriler.forEach(g => {
+      const yil = g.tarih.slice(0,4);
+      if (!yillar[yil]) yillar[yil] = { gelir: 0, gider: 0 };
+      if (g.tur === 'gelir') yillar[yil].gelir += Number(g.tutar);
+      else yillar[yil].gider += Number(g.tutar);
+    });
+
+    // En yeni yıl en üstte
+    const yilSirali = Object.keys(yillar).sort((a,b) => b - a);
+
+    // Aktif sporcu sayısını en üste koy
+    let statsHtml = `<div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">${sporcular.length}</div></div>`;
+
+    // Her yıl için ayrı satır
+    // Otomatik Koray Öğüt pay hesaplama — her ay kontrol et
+    await hesaplaKorayPay(buAyVeriler, buAyStr);
+
+    // Gider detaylarını kategoriye göre grupla
+    const giderDetay = {};
+    buAyVeriler.filter(g => g.tur === 'gider').forEach(g => {
+      const kat = g.kategori || 'Diğer';
+      if (!giderDetay[kat]) giderDetay[kat] = { toplam: 0, kayitlar: [] };
+      giderDetay[kat].toplam += Number(g.tutar);
+      giderDetay[kat].kayitlar.push(g);
+    });
+
+    const yilSatirlar = yilSirali.map(yil => {
+      const kar = yillar[yil].gelir - yillar[yil].gider;
+      // O yılın gider detayları
+      const yilGiderDetay = {};
+      buAyVeriler.filter(g => g.tur === 'gider' && g.tarih.slice(0,4) === yil).forEach(g => {
+        const kat = g.kategori || 'Diğer';
+        if (!yilGiderDetay[kat]) yilGiderDetay[kat] = 0;
+        yilGiderDetay[kat] += Number(g.tutar);
+      });
+
+      // Elle girilen kategoriler
+      const otomatikKat = ['aidat','pay','kira','sigorta'];
+      const elleGirilenler = buAyVeriler.filter(g => 
+        g.tur === 'gider' && 
+        g.tarih.slice(0,4) === yil && 
+        !otomatikKat.includes(g.kategori)
+      );
+      const elleGirilenToplam = elleGirilenler.reduce((a,b) => a + Number(b.tutar), 0);
+
+      const katEtiketleri = {
+        ekipman:'Ekipman', kira:'Kira', fatura:'Fatura', sigorta:'Sigorta',
+        pay:'Koray Öğüt Pay', malzeme_satis:'Malzeme Satışı', diger_gelir:'Diğer Gelir',
+        maas:'Maaş', bakim:'Bakım/Onarım', diger:'Diğer'
+      };
+
+      const giderListesi = Object.entries(yilGiderDetay)
+        .filter(([kat]) => otomatikKat.includes(kat))
+        .map(([kat, toplam]) => 
+          `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">${katEtiketleri[kat] || kat}</span>
+            <span style="color:var(--red);font-weight:500">${fmtMoney(toplam)}</span>
+          </div>`
+        ).join('') + (elleGirilenToplam > 0 ? `
+          <div style="border-bottom:1px solid var(--border)">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.querySelector('.chevron').style.transform==='rotate(180deg)'?'':'rotate(180deg)'" 
+              style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
+              <span style="color:var(--muted)">Diğer <span class="chevron" style="display:inline-block;transition:transform .2s">▼</span></span>
+              <span style="color:var(--red);font-weight:500">${fmtMoney(elleGirilenToplam)}</span>
+            </div>
+            <div style="display:none;padding:4px 0 4px 12px">
+              ${elleGirilenler.map(g => `
+                <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">${g.aciklama}</span>
+                  <span style="color:var(--red)">${fmtMoney(g.tutar)}</span>
+                </div>`).join('')}
+            </div>
+          </div>` : '');
+
+      // Gelir detayları
+      const gelirKayitlari = buAyVeriler.filter(g => g.tur === 'gelir' && g.tarih.slice(0,4) === yil);
+      const aidatGelir = gelirKayitlari.filter(g => g.kategori === 'aidat').reduce((a,b) => a + Number(b.tutar), 0);
+      const elleGirilenGelirler = gelirKayitlari.filter(g => g.kategori !== 'aidat');
+      const elleGirilenGelirToplam = elleGirilenGelirler.reduce((a,b) => a + Number(b.tutar), 0);
+
+      const gelirListesi = (aidatGelir > 0 ? `
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">Aidat</span>
+          <span style="color:var(--green);font-weight:500">${fmtMoney(aidatGelir)}</span>
+        </div>` : '') +
+        (elleGirilenGelirToplam > 0 ? `
+          <div style="border-bottom:1px solid var(--border)">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.gchevron').style.transform=this.querySelector('.gchevron').style.transform==='rotate(180deg)'?'':'rotate(180deg)'"
+              style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
+              <span style="color:var(--muted)">Diğer <span class="gchevron" style="display:inline-block;transition:transform .2s">▼</span></span>
+              <span style="color:var(--green);font-weight:500">${fmtMoney(elleGirilenGelirToplam)}</span>
+            </div>
+            <div style="display:none;padding:4px 0 4px 12px">
+              ${elleGirilenGelirler.map(g => {
+                const katEtiket = {
+                  malzeme_satis:'Malzeme Satışı', diger_gelir:'Diğer Gelir',
+                  ekipman:'Ekipman', fatura:'Fatura', maas:'Maaş',
+                  bakim:'Bakım/Onarım', diger:'Diğer'
+                }[g.kategori] || g.kategori;
+                const etiket = g.aciklama && g.aciklama !== '-' ? g.aciklama : katEtiket;
+                return `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid var(--border)">
+                  <span style="color:var(--muted)">${etiket}</span>
+                  <span style="color:var(--green)">+${fmtMoney(g.tutar)}</span>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>` : '');
+
+      return `
+        <div class="card" style="padding:12px 16px;margin-bottom:0">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">${ayAdi} ${yil}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">${fmtMoney(yillar[yil].gelir)}</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">${fmtMoney(yillar[yil].gider)}</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Net Kar</div><div style="font-size:16px;font-weight:600;color:${kar>=0?'var(--green)':'var(--red)'}">${fmtMoney(kar)}</div></div>
+          </div>
+          ${gelirListesi ? `<div style="border-top:1px solid var(--border);padding-top:8px;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gelir Detayı</div>
+            ${gelirListesi}
+          </div>` : ''}
+          ${giderListesi ? `<div style="border-top:1px solid var(--border);padding-top:8px">
+            <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Gider Detayı</div>
+            ${giderListesi}
+          </div>` : ''}
+        </div>`;
+    }).join('');
+
+    document.getElementById('dash-stats').innerHTML = `
+      <div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">${sporcular.length}</div></div>
+    `;
+
+    // Yıllık kartları göster
+    document.getElementById('yil-kartlari').innerHTML = yilSatirlar;
+
+    const bekleyen = odemeler.filter(o => o.durum === 'bekliyor' || o.durum === 'gecikti').slice(0, 5);
+    document.getElementById('dash-odemeler').innerHTML = bekleyen.length ? `
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px">
+        ${bekleyen.map(o => `
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="avatar" style="width:30px;height:30px;font-size:10px">${initials(o.sporcular?.ad_soyad||'')}</div>
+            <div style="flex:1"><div style="font-size:13px">${o.sporcular?.ad_soyad||'-'}</div><div style="font-size:11px;color:var(--muted)">${o.ay} · Vade: ${fmtDate(o.vade_tarihi)}</div></div>
+            <span class="badge ${o.durum === 'gecikti' ? 'red' : 'amber'}">${fmtMoney(o.tutar)}</span>
+          </div>
+        `).join('')}
+      </div>
+    ` : '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Bekleyen ödeme yok</div>';
+
+
+
+  } catch(e) { toast('Yükleme hatası: ' + e.message, true); }
+}
+
+// SPORCULAR
+function sporcuRow(s, odendi, ay) {
+  const odendiVal = odendi && typeof odendi === 'object' ? odendi.odendi : odendi;
+  const tutarVal = odendi && typeof odendi === 'object' ? odendi.tutar : null;
+  const rowStyle = odendiVal ? 'background:#E1F5EE;' : '';
+  const odemeBtn = s.durum === 'aktif' ? `
+    <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}')">
+      ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
+    </button>` : '';
+  return `<tr style="${rowStyle}">
+    <td><div class="sporcu-row"><div class="avatar">${initials(s.ad_soyad)}</div><div><div style="font-weight:500">${s.ad_soyad}</div><div style="font-size:11px;color:var(--muted)">${s.telefon||''}</div></div></div></td>
+    <td>${fmtDate(s.baslangic_tarihi)}</td>
+    <td>${fmtDate(s.dogum_tarihi)}</td>
+    <td>${s.veli_adi||'-'}</td>
+    <td>${s.veli_telefonu||'-'}</td>
+    <td>${s.veli_meslegi||'-'}</td>
+    <td>${tutarVal ? fmtMoney(tutarVal) : fmtMoney(s.aylik_ucret)}</td>
+    <td>${odemeBtn}
+      <button class="btn sm ${s.durum==='aktif'?'':'primary'}" onclick="toggleDurum('${s.id}','${s.durum}')">
+        ${s.durum==='aktif'?'Pasif Yap':'Aktif Yap'}
+      </button>
+    </td>
+    <td style="white-space:nowrap">
+      <button class="btn sm" onclick="detaySporcu('${s.id}')">Detay / Düzenle</button>
+      <button class="btn sm danger" onclick="deleteSporcu('${s.id}')">Sil</button>
+    </td>
+  </tr>`;
+}
+
+async function loadSporcular() {
+  try {
+    const simdi = new Date();
+    const gercekBuAy = simdi.toISOString().slice(0, 7);
+    const hedefAy = seciliSporculAy || gercekBuAy;
+    const gecenAy = (() => {
+      const d = new Date(hedefAy + '-01');
+      d.setMonth(d.getMonth() - 1);
+      return d.toISOString().slice(0,7);
+    })();
+
+    // Ay label güncelle
+    document.getElementById('secili-ay-label').textContent = ayBaslikStr(hedefAy);
+
+    const [data, hedefAyOdeme, tumGecmisOdeme] = await Promise.all([
+      db('sporcular', 'GET', null, '?select=*&order=ad_soyad.asc'),
+      db('aylik_odeme_durum', 'GET', null, `?ay=eq.${hedefAy}&select=sporcu_id,odendi,tutar`),
+      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&odendi=eq.false&select=sporcu_id,ay,tutar&order=ay.asc`)
+    ]);
+    sporcularCache = data;
+
+    odemeCache = {};
+    hedefAyOdeme.forEach(o => { odemeCache[o.sporcu_id] = { odendi: o.odendi, tutar: o.tutar }; });
+
+    // Geçmiş aylara göre grupla
+    // Sadece ödenmemişler geldi, aylarına göre grupla
+    const gecmisAyMap = {}; // { 'YYYY-MM': Map(sporcu_id -> tutar) }
+    tumGecmisOdeme.forEach(o => {
+      if (!gecmisAyMap[o.ay]) gecmisAyMap[o.ay] = new Map();
+      gecmisAyMap[o.ay].set(o.sporcu_id, o.tutar);
+    });
+
+    const tbody = document.getElementById('sporcu-tbody');
+    const aktifler = data.filter(s => {
+      if (s.durum !== 'aktif') return false;
+      if (!s.baslangic_tarihi) return true;
+      return s.baslangic_tarihi.slice(0,7) <= hedefAy;
+    });
+    const pasifler = data.filter(s => s.durum !== 'aktif');
+
+    let html = '';
+
+    // Pasif filtresi seçildiyse sadece pasifleri göster
+    if (sporcuFiltre === 'pasif') {
+      html += `<tr style="background:#f1efe8"><td colspan="10" style="font-weight:600;font-size:12px;color:var(--muted);padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">⚪ Pasif Sporcular (${pasifler.length})</td></tr>`;
+      if (pasifler.length) html += pasifler.map(s => sporcuRow(s, false, hedefAy)).join('');
+      else html += '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted)">Pasif sporcu yok</td></tr>';
+      tbody.innerHTML = html;
+      return;
+    }
+
+    // Tüm geçmiş aylardaki ödenmemişleri göster (sadece bu ay görünüyorsa)
+    if (hedefAy === gercekBuAy) {
+      const gecmisAylar = Object.keys(gecmisAyMap).sort();
+      gecmisAylar.forEach(ay => {
+        const ayOdeme = gecmisAyMap[ay]; // Set of sporcu_id
+        const kalanlar = data.filter(s => {
+          if (s.durum !== 'aktif') return false;
+          return ayOdeme.has(s.id); // Map içinde varsa ödenmemiş demek
+        });
+        if (kalanlar.length > 0) {
+          html += `<tr style="background:#FCEBEB"><td colspan="10" style="font-weight:600;font-size:12px;color:#A32D2D;padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">⚠️ ${ayBaslikStr(ay)}'dan Kalanlar (${kalanlar.length})</td></tr>`;
+          html += kalanlar.map(s => sporcuRow(s, { odendi: false, tutar: ayOdeme.get(s.id) }, ay)).join('');
+        }
+      });
+    }
+
+    // Hedef ay sporcuları
+    const odenmemis = aktifler.filter(s => !odemeCache[s.id] || !odemeCache[s.id].odendi);
+    const odenmis = aktifler.filter(s => odemeCache[s.id] && odemeCache[s.id].odendi);
+
+    html += `<tr style="background:var(--accent-light)"><td colspan="10" style="font-weight:600;font-size:12px;color:var(--accent-dark);padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">🟢 ${ayBaslikStr(hedefAy)} — Aktif Sporcular (${aktifler.length})</td></tr>`;
+    if (odenmemis.length) html += odenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar }, hedefAy)).join('');
+    if (odenmis.length) html += odenmis.map(s => sporcuRow(s, odemeCache[s.id], hedefAy)).join('');
+    if (!aktifler.length) html += '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted)">Bu ayda aktif sporcu yok</td></tr>';
+
+    tbody.innerHTML = html;
+  } catch(e) { toast('Yükleme hatası: ' + e.message, true); }
+}
+
+async function toggleDurum(id, mevcutDurum) {
+  const yeniDurum = mevcutDurum === 'aktif' ? 'pasif' : 'aktif';
+  try {
+    await db('sporcular', 'PATCH', { durum: yeniDurum }, `?id=eq.${id}`);
+    toast(yeniDurum === 'aktif' ? 'Sporcu aktif yapıldı' : 'Sporcu pasif yapıldı');
+    loadSporcular();
+  } catch(e) { toast('Güncelleme hatası', true); }
+}
+
+let currentDetaySporcu = null;
+
+async function toggleGecmisOdemeler() {
+  const panel = document.getElementById('gecmis-odeme-panel');
+  const icon = document.getElementById('gecmis-odeme-icon');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    icon.textContent = '▲ Gizle';
+    await loadGecmisOdemeler();
+  } else {
+    panel.style.display = 'none';
+    icon.textContent = '▼ Göster';
+  }
+}
+
+async function loadGecmisOdemeler() {
+  const id = document.getElementById('d2-id').value;
+  const icerik = document.getElementById('gecmis-odeme-icerik');
+  try {
+    const data = await db('aylik_odeme_durum', 'GET', null, `?sporcu_id=eq.${id}&order=ay.asc&select=*`);
+    if (!data.length) {
+      icerik.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Ödeme kaydı bulunamadı</div>';
+      return;
+    }
+    const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html += '<thead><tr style="border-bottom:1px solid var(--border)"><th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Ay</th><th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Tutar</th><th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Ödeme Tarihi</th><th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Durum</th></tr></thead><tbody>';
+    data.forEach(o => {
+      const [yil, ayNo] = o.ay.split('-');
+      const ayAdi = ayAdlari[parseInt(ayNo)] + ' ' + yil;
+      const tarih = o.odeme_tarihi ? new Date(o.odeme_tarihi).toLocaleDateString('tr-TR') : '-';
+      const durum = o.odendi 
+        ? '<span style="color:#1D9E75;font-weight:600">✓ Ödendi</span>' 
+        : '<span style="color:#E24B4A;font-weight:600">✗ Ödenmedi</span>';
+      html += `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 14px">${ayAdi}</td>
+        <td style="padding:9px 14px;font-weight:500">${o.tutar ? o.tutar.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
+        <td style="padding:9px 14px;color:var(--muted)">${tarih}</td>
+        <td style="padding:9px 14px">${durum}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    icerik.innerHTML = html;
+  } catch(e) {
+    icerik.innerHTML = '<div style="padding:16px;color:var(--red);font-size:13px">Yükleme hatası</div>';
+  }
+}
+
+function toggleNotlar() {
+  const panel = document.getElementById('notlar-panel');
+  const icon = document.getElementById('notlar-icon');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    icon.textContent = '▲ Gizle';
+  } else {
+    panel.style.display = 'none';
+    icon.textContent = '▼ Göster';
+  }
+}
+
+function detaySporcu(id) {
+  const s = sporcularCache.find(x => x.id === id);
+  if (!s) return;
+  currentDetaySporcu = id;
+
+  document.getElementById('detay-avatar').textContent = initials(s.ad_soyad);
+  document.getElementById('detay-baslik').textContent = s.ad_soyad;
+  document.getElementById('detay-sub').textContent = s.durum === 'aktif' ? 'Aktif Sporcu' : 'Pasif Sporcu';
+
+  document.getElementById('d2-id').value = s.id;
+  document.getElementById('d2-ad').value = s.ad_soyad || '';
+  document.getElementById('d2-dogum').value = s.dogum_tarihi || '';
+  document.getElementById('d2-baslangic').value = s.baslangic_tarihi || '';
+  document.getElementById('d2-odeme-gunu').value = s.odeme_gunu || '';
+  document.getElementById('d2-tel').value = s.telefon || '';
+  document.getElementById('d2-ucret').value = s.aylik_ucret || '';
+  document.getElementById('d2-durum').value = s.durum || 'aktif';
+  
+  // Yay listesini doldur
+  const yaySelect = document.getElementById('d2-atanan-yay');
+  yaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
+  if (yayEnvanteriCache.length) {
+    yayEnvanteriCache.forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = `${y.libre} ${y.tip}`;
+      opt.textContent = `${y.libre} Libre ${y.tip}`;
+      if (s.atanan_yay === opt.value) opt.selected = true;
+      yaySelect.appendChild(opt);
+    });
+    if (s.atanan_yay === 'Kendi Yayı') yaySelect.value = 'Kendi Yayı';
+  } else {
+    db('yay_envanteri', 'GET', null, '?select=*&order=libre.asc').then(yaylar => {
+      yayEnvanteriCache = yaylar;
+      yaylar.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = `${y.libre} ${y.tip}`;
+        opt.textContent = `${y.libre} Libre ${y.tip}`;
+        if (s.atanan_yay === opt.value) opt.selected = true;
+        yaySelect.appendChild(opt);
+      });
+      if (s.atanan_yay === 'Kendi Yayı') yaySelect.value = 'Kendi Yayı';
+    });
+  }
+  
+  document.getElementById('d2-veli-ad').value = s.veli_adi || '';
+  document.getElementById('d2-veli-tel').value = s.veli_telefonu || '';
+  document.getElementById('d2-veli-meslek').value = s.veli_meslegi || '';
+  document.getElementById('d2-notlar').value = s.notlar || '';
+  document.getElementById('notlar-panel').style.display = 'none';
+  document.getElementById('notlar-icon').textContent = '▼ Göster';
+  document.getElementById('gecmis-odeme-panel').style.display = 'none';
+  document.getElementById('gecmis-odeme-icon').textContent = '▼ Göster';
+
+  const ekipmanlar = s.ekipmanlar || {};
+  document.querySelectorAll('#detay-ekipmanlar input[type=checkbox]').forEach(cb => {
+    cb.checked = !!ekipmanlar[cb.dataset.ekipman];
+  });
+
+  openModal('m-detay');
+}
+
+async function saveDetay() {
+  const id = document.getElementById('d2-id').value;
+  const ekipmanlar = {};
+  document.querySelectorAll('#detay-ekipmanlar input[type=checkbox]').forEach(cb => {
+    ekipmanlar[cb.dataset.ekipman] = cb.checked;
+  });
+  const body = {
+    ad_soyad: document.getElementById('d2-ad').value.trim(),
+    dogum_tarihi: document.getElementById('d2-dogum').value || null,
+    baslangic_tarihi: document.getElementById('d2-baslangic').value || null,
+    telefon: document.getElementById('d2-tel').value || null,
+    aylik_ucret: parseFloat(document.getElementById('d2-ucret').value) || 0,
+    durum: document.getElementById('d2-durum').value,
+    veli_adi: document.getElementById('d2-veli-ad').value || null,
+    veli_telefonu: document.getElementById('d2-veli-tel').value || null,
+    veli_meslegi: document.getElementById('d2-veli-meslek').value || null,
+    atanan_yay: document.getElementById('d2-atanan-yay').value || null,
+    odeme_gunu: parseInt(document.getElementById('d2-odeme-gunu').value) || null,
+    notlar: document.getElementById('d2-notlar').value || null,
+    ekipmanlar,
+  };
+  if (!body.ad_soyad) { toast('Ad soyad zorunlu', true); return; }
+  try {
+    await db('sporcular', 'PATCH', body, `?id=eq.${id}`);
+
+    // Ödeme günü değiştiyse gelecek ayların vade tarihlerini güncelle
+    const eskiSporcu = sporcularCache.find(x => x.id === id);
+    const yeniOdemeGunu = parseInt(document.getElementById('d2-odeme-gunu').value) || null;
+    if (yeniOdemeGunu && eskiSporcu && eskiSporcu.odeme_gunu !== yeniOdemeGunu) {
+      const buAy = new Date().toISOString().slice(0,7);
+      // Gelecek ayların vade tarihini güncelle
+      const gelecekOdemeler = await db('aylik_odeme_durum', 'GET', null, 
+        `?sporcu_id=eq.${id}&ay=gte.${buAy}&odendi=eq.false&select=id,ay`);
+      for (const o of gelecekOdemeler) {
+        const [yil, ay] = o.ay.split('-');
+        const sonGun = new Date(parseInt(yil), parseInt(ay), 0).getDate();
+        const gun = Math.min(yeniOdemeGunu, sonGun);
+        const yeniVade = `${o.ay}-${String(gun).padStart(2,'0')}`;
+        await db('odemeler', 'PATCH', { vade_tarihi: yeniVade }, 
+          `?sporcu_id=eq.${id}&ay=eq.${o.ay}`);
+      }
+      toast('Ödeme günü ve gelecek vadeler güncellendi');
+    }
+
+    // Yay değiştiyse ders programını da güncelle
+    if (body.atanan_yay && eskiSporcu && eskiSporcu.atanan_yay !== body.atanan_yay) {
+      const adSoyad = body.ad_soyad || eskiSporcu.ad_soyad;
+      await db('ders_programi', 'PATCH', 
+        { yay: body.atanan_yay },
+        `?sporcu_adi=eq.${encodeURIComponent(adSoyad)}`
+      );
+      programCache = []; // Program cache'i temizle, yeniden yüklensin
+    }
+
+    closeModal('m-detay');
+    toast('Kaydedildi');
+    loadSporcular();
+  } catch(e) { toast('Kayıt hatası: ' + e.message, true); }
+}
+
+
+function openSporcu() {
+  document.getElementById('m-sporcu-title').textContent = 'Sporcu Ekle';
+  ['s-id','s-ad','s-dogum','s-baslangic','s-tel','s-ucret','s-veli-ad','s-veli-tel','s-veli-meslek'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('s-baslangic').value = new Date().toISOString().split('T')[0];
+  document.getElementById('s-durum').value = 'aktif';
+  openModal('m-sporcu');
+}
+
+function editSporcu(id) {
+  const s = sporcularCache.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('m-sporcu-title').textContent = 'Sporcu Düzenle';
+  document.getElementById('s-id').value = s.id;
+  document.getElementById('s-ad').value = s.ad_soyad || '';
+  document.getElementById('s-dogum').value = s.dogum_tarihi || '';
+  document.getElementById('s-baslangic').value = s.baslangic_tarihi || '';
+  document.getElementById('s-tel').value = s.telefon || '';
+  document.getElementById('s-ucret').value = s.aylik_ucret || '';
+  document.getElementById('s-durum').value = s.durum || 'aktif';
+  document.getElementById('s-veli-ad').value = s.veli_adi || '';
+  document.getElementById('s-veli-tel').value = s.veli_telefonu || '';
+  document.getElementById('s-veli-meslek').value = s.veli_meslegi || '';
+  openModal('m-sporcu');
+}
+
+async function saveSporcu() {
+  const id = document.getElementById('s-id').value;
+  const baslangic = document.getElementById('s-baslangic').value || null;
+  const body = {
+    ad_soyad: document.getElementById('s-ad').value.trim(),
+    dogum_tarihi: document.getElementById('s-dogum').value || null,
+    baslangic_tarihi: baslangic,
+    telefon: document.getElementById('s-tel').value || null,
+    aylik_ucret: parseFloat(document.getElementById('s-ucret').value) || 0,
+    durum: document.getElementById('s-durum').value,
+    veli_adi: document.getElementById('s-veli-ad').value || null,
+    veli_telefonu: document.getElementById('s-veli-tel').value || null,
+    veli_meslegi: document.getElementById('s-veli-meslek').value || null,
+  };
+  if (!body.ad_soyad) { toast('Ad soyad zorunlu', true); return; }
+  try {
+    let sporcuId = id;
+    if (id) {
+      await db('sporcular', 'PATCH', body, `?id=eq.${id}`);
+      toast('Sporcu güncellendi');
+    } else {
+      const result = await db('sporcular', 'POST', body);
+      sporcuId = result[0].id;
+      // Başlangıç tarihinden itibaren ilk ödemeyi otomatik oluştur
+      if (baslangic && body.aylik_ucret > 0) {
+        await otomatikOdemeOlustur(sporcuId, baslangic, body.aylik_ucret, body.odeme_gunu);
+      }
+      toast('Sporcu eklendi');
+    }
+    closeModal('m-sporcu');
+    loadSporcular();
+  } catch(e) { toast('Kayıt hatası: ' + e.message, true); }
+}
+
+async function otomatikOdemeOlustur(sporcuId, baslangicTarihi, ucret, odemeGunu) {
+  const baslangic = new Date(baslangicTarihi);
+  const gun = odemeGunu || baslangic.getDate();
+  const bugun = new Date();
+  
+  // Başlangıç ayından itibaren sonraki aya kadar ödeme oluştur
+  let ay = new Date(baslangic.getFullYear(), baslangic.getMonth(), 1);
+  const sonAy = new Date(bugun.getFullYear(), bugun.getMonth() + 1, 1);
+  
+  const odemeler = [];
+  while (ay < sonAy) {
+    const vadeTarihi = new Date(ay.getFullYear(), ay.getMonth(), gun);
+    // Ayın son gününü aşmaması için kontrol
+    const sonGun = new Date(ay.getFullYear(), ay.getMonth() + 1, 0).getDate();
+    const gercekGun = Math.min(gun, sonGun);
+    const vade = new Date(ay.getFullYear(), ay.getMonth(), gercekGun);
+    
+    const ayStr = `${ay.getFullYear()}-${String(ay.getMonth()+1).padStart(2,'0')}`;
+    const vadeStr = vade.toISOString().split('T')[0];
+    const durum = vade < bugun ? 'bekliyor' : 'bekliyor';
+    
+    odemeler.push({
+      sporcu_id: sporcuId,
+      ay: ayStr,
+      tutar: ucret,
+      vade_tarihi: vadeStr,
+      durum: 'bekliyor'
+    });
+    
+    ay.setMonth(ay.getMonth() + 1);
+  }
+  
+  if (odemeler.length > 0) {
+    await db('odemeler', 'POST', odemeler);
+  }
+}
+
+async function deleteSporcu(id) {
+  if (!confirm('Bu sporcuyu silmek istediğinizden emin misiniz?')) return;
+  try {
+    await db('sporcular', 'DELETE', null, `?id=eq.${id}`);
+    toast('Sporcu silindi');
+    loadSporcular();
+  } catch(e) { toast('Silme hatası', true); }
+}
+
+// ÖDEMELER
+async function loadOdemeler() {
+  try {
+    const data = await db('odemeler', 'GET', null, '?select=*,sporcular(ad_soyad)&order=olusturma_tarihi.desc');
+    const tbody = document.getElementById('odeme-tbody');
+    if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Henüz ödeme kaydı yok</td></tr>'; return; }
+    tbody.innerHTML = data.map(o => `
+      <tr>
+        <td>${o.sporcular?.ad_soyad||'-'}</td>
+        <td>${o.ay||'-'}</td>
+        <td style="font-weight:500">${fmtMoney(o.tutar)}</td>
+        <td>${fmtDate(o.vade_tarihi)}</td>
+        <td>${fmtDate(o.odeme_tarihi)}</td>
+        <td><span class="badge ${o.durum==='odendi'?'green':o.durum==='gecikti'?'red':'amber'}">${o.durum==='odendi'?'Ödendi':o.durum==='gecikti'?'Gecikmiş':'Bekliyor'}</span></td>
+        <td style="white-space:nowrap">
+          ${o.durum !== 'odendi' ? `<button class="btn sm primary" onclick="odendiYap('${o.id}')">Ödendi</button>` : ''}
+          <button class="btn sm danger" onclick="deleteOdeme('${o.id}')">Sil</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { toast('Yükleme hatası', true); }
+}
+
+async function openOdeme() {
+  const sporcular = await db('sporcular', 'GET', null, '?select=id,ad_soyad&order=ad_soyad.asc');
+  document.getElementById('o-sporcu').innerHTML = sporcular.map(s => `<option value="${s.id}">${s.ad_soyad}</option>`).join('');
+  document.getElementById('o-id').value = '';
+  document.getElementById('o-ay').value = '';
+  document.getElementById('o-tutar').value = '';
+  document.getElementById('o-vade').value = '';
+  document.getElementById('o-tarih').value = '';
+  document.getElementById('o-durum').value = 'bekliyor';
+  openModal('m-odeme');
+}
+
+async function saveOdeme() {
+  const id = document.getElementById('o-id').value;
+  const body = {
+    sporcu_id: document.getElementById('o-sporcu').value,
+    ay: document.getElementById('o-ay').value,
+    tutar: parseFloat(document.getElementById('o-tutar').value) || 0,
+    vade_tarihi: document.getElementById('o-vade').value || null,
+    odeme_tarihi: document.getElementById('o-tarih').value || null,
+    durum: document.getElementById('o-durum').value,
+  };
+  try {
+    if (id) await db('odemeler', 'PATCH', body, `?id=eq.${id}`);
+    else await db('odemeler', 'POST', body);
+    closeModal('m-odeme');
+    toast('Ödeme kaydedildi');
+    loadOdemeler();
+  } catch(e) { toast('Kayıt hatası', true); }
+}
+
+async function odendiYap(id) {
+  await db('odemeler', 'PATCH', { durum: 'odendi', odeme_tarihi: new Date().toISOString().split('T')[0] }, `?id=eq.${id}`);
+  toast('Ödeme alındı olarak işaretlendi');
+  loadOdemeler();
+}
+
+async function deleteOdeme(id) {
+  if (!confirm('Bu ödeme kaydını silmek istiyor musunuz?')) return;
+  await db('odemeler', 'DELETE', null, `?id=eq.${id}`);
+  toast('Ödeme silindi');
+  loadOdemeler();
+}
+
+// DERS PROGRAMI
+let programCache = [];
+let yoklamaCache = {};
+
+async function loadYoklama() {
+  const bugun = new Date().toISOString().split('T')[0];
+  try {
+    const data = await db('yoklama', 'GET', null, `?tarih=eq.${bugun}&select=*`);
+    yoklamaCache = {};
+    data.forEach(y => {
+      yoklamaCache[y.ders_programi_id + '_' + y.tarih] = y.durum;
+    });
+  } catch(e) { console.error('Yoklama yüklenemedi', e); }
+}
+
+async function setYoklama(dersProgramiId, durum, tarih, btn) {
+  const key = dersProgramiId + '_' + tarih;
+  // Aynı butona tekrar basınca belirsiz yap
+  if (yoklamaCache[key] === durum) {
+    durum = 'belirsiz';
+  }
+  yoklamaCache[key] = durum;
+
+  try {
+    // Upsert: varsa güncelle, yoksa ekle
+    await db('yoklama', 'POST',
+      { ders_programi_id: dersProgramiId, tarih, durum },
+      '?on_conflict=ders_programi_id,tarih'
+    );
+  } catch(e) {
+    // Conflict hatası — güncelle
+    try {
+      await db('yoklama', 'PATCH', { durum }, `?ders_programi_id=eq.${dersProgramiId}&tarih=eq.${tarih}`);
+    } catch(e2) { toast('Kayıt hatası', true); return; }
+  }
+  renderProgram();
+}
+
+let aktifGun = 'Salı';
+
+async function loadProgram() {
+  try {
+    if (!programCache.length) {
+      programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc');
+    }
+    await Promise.all([loadYoklama(), loadYayEnvanteri()]);
+    // Aktif gün butonunu güncelle
+    document.querySelectorAll('#page-program .btn').forEach(b => b.classList.remove('primary'));
+    const aktifBtn = document.getElementById('gun-' + aktifGun);
+    if (aktifBtn) aktifBtn.classList.add('primary');
+    renderProgram();
+  } catch(e) { toast('Yükleme hatası', true); }
+}
+
+function filterGun(gun, btn) {
+  aktifGun = gun;
+  document.querySelectorAll('#page-program > div:first-child .btn').forEach(b => {
+    b.className = 'btn';
+  });
+  btn.className = 'btn primary';
+  renderProgram();
+}
+
+function renderProgram() {
+  const el = document.getElementById('program-content');
+  const data = programCache.filter(r => r.gun === aktifGun);
+
+  if (!data.length) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">Bu gün için ders programı yok <br><button class="btn primary" style="margin-top:12px" onclick="programYeniSporcu()">+ Sporcu Ekle</button></div>`;
+    return;
+  }
+
+  const saatler = [...new Set(data.map(r => r.saat))].sort();
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  saatler.forEach(saat => {
+    const icler = data.filter(r => r.saat === saat && r.salon === 'İç');
+    const disler = data.filter(r => r.saat === saat && r.salon === 'Dış');
+    const maxRow = Math.max(icler.length, disler.length, 1);
+
+    html += `<div class="card" style="padding:0;overflow:hidden">
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr">
+        <div style="background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--accent-dark);padding:8px;writing-mode:initial;border-right:1px solid var(--border)">${saat}</div>
+        <div style="border-right:1px solid var(--border)">
+          <div style="padding:6px 10px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg)">🏠 İç Alan</div>
+          <div style="padding:6px">`;
+    
+    if (icler.length) {
+      icler.forEach(r => { html += sporcuCardEdit(r); });
+    }
+    html += `<button onclick="programYeniSporcu('${aktifGun}','${saat}','İç')" style="width:100%;padding:5px;border:1px dashed var(--border2);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:11px;color:var(--muted);margin-top:4px">+ Ekle</button>`;
+    html += `</div></div>
+        <div>
+          <div style="padding:6px 10px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg)">🌿 Dış Alan</div>
+          <div style="padding:6px">`;
+    
+    if (disler.length) {
+      disler.forEach(r => { html += sporcuCardEdit(r); });
+    }
+    html += `<button onclick="programYeniSporcu('${aktifGun}','${saat}','Dış')" style="width:100%;padding:5px;border:1px dashed var(--border2);border-radius:var(--radius-sm);background:none;cursor:pointer;font-size:11px;color:var(--muted);margin-top:4px">+ Ekle</button>`;
+    html += `</div></div>
+      </div>
+    </div>`;
+  });
+
+  // Yeni saat ekle butonu
+  html += `<button onclick="programYeniSaat()" class="btn" style="width:100%;justify-content:center">+ Yeni Saat Dilimi Ekle</button>`;
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function sporcuCardEdit(r) {
+  const bg = r.telafi ? '#F3EFFE' : 'var(--surface)';
+  const border = r.telafi ? '#C4B0F7' : 'var(--border)';
+  const textColor = r.telafi ? '#6B46C1' : 'var(--text)';
+
+  // Yay doluluk kontrolü
+  let yayUyari = '';
+  if (r.yay && !r.yay.toLowerCase().includes('kendi') && yayEnvanteriCache.length) {
+    const parts = r.yay.trim().split(' ');
+    const libre = parseInt(parts[0]);
+    const tip = parts[1] || '';
+    const envanter = yayEnvanteriCache.find(y => y.libre === libre && y.tip.toLowerCase() === tip.toLowerCase());
+    if (envanter) {
+      const kullanan = programCache.filter(x => x.gun === r.gun && x.saat === r.saat && x.yay && x.yay.trim().toLowerCase() === r.yay.trim().toLowerCase()).length;
+      if (kullanan > envanter.adet) yayUyari = ' <span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 5px;border-radius:10px">⚠️ Yay Yok</span>';
+    }
+  }
+
+  return `<div onclick="programSporucuDuzenle('${r.id}')" style="padding:6px 8px;margin-bottom:4px;background:${bg};border:1px solid ${border};border-radius:var(--radius-sm);cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+    <div style="font-size:12px;font-weight:500;color:${textColor}">${r.sporcu_adi}${r.telafi ? ' <span style="font-size:10px;background:#C4B0F7;color:#4C1D95;padding:1px 5px;border-radius:10px">TELAFİ</span>' : ''}${yayUyari}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:1px">${r.yas ? r.yas + ' yaş' : ''} ${r.yay ? '· ' + r.yay : ''}</div>
+  </div>`;
+}
+
+function sporcuCell(r) {
+  return `<div style="font-size:12px;font-weight:500;padding:2px 0">${r.sporcu_adi}</div>`;
+}
+
+function sporcuCardDetail(r) {
+  const bugun = new Date().toISOString().split('T')[0];
+  const key = r.id + '_' + bugun;
+  const durum = yoklamaCache[key] || 'belirsiz';
+  const geldiStyle = durum === 'geldi' ? 'background:#1D9E75;color:#fff;border-color:#1D9E75' : '';
+  const gelmediStyle = durum === 'gelmedi' ? 'background:#E24B4A;color:#fff;border-color:#E24B4A' : '';
+  return `<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+    <div style="font-size:13px;font-weight:500;margin-bottom:4px">${r.sporcu_adi}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">${r.yas ? r.yas + ' yaş' : ''} ${r.yay ? '· ' + r.yay : ''}</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn sm" style="font-size:11px;${geldiStyle}" onclick="setYoklama('${r.id}','geldi','${bugun}',this)">✓ Geldi</button>
+      <button class="btn sm" style="font-size:11px;${gelmediStyle}" onclick="setYoklama('${r.id}','gelmedi','${bugun}',this)">✗ Gelmedi</button>
+    </div>
+  </div>`;
+}
+
+function programSporucuDuzenle(id) {
+  const r = programCache.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('m-ps-title').textContent = 'Sporcu Düzenle';
+  document.getElementById('ps-id').value = r.id;
+  document.getElementById('ps-ad').value = r.sporcu_adi || '';
+  document.getElementById('ps-yas').value = r.yas || '';
+  document.getElementById('ps-yay').value = r.yay || '';
+  document.getElementById('ps-salon').value = r.salon || 'İç';
+  document.getElementById('ps-telafi').checked = r.telafi || false;
+  document.getElementById('ps-sil-btn').style.display = 'inline-flex';
+
+  // Taşı bölümü - mevcut gün/saati seç
+  document.getElementById('ps-tasi-gun').value = r.gun || aktifGun;
+  updateTasiSaatler(r.gun || aktifGun, r.saat);
+  document.getElementById('ps-tasi-salon').value = r.salon || 'İç';
+
+  openModal('m-program-sporcu');
+}
+
+function updateTasiSaatler(gun, secilenSaat) {
+  const saatler = [...new Set(programCache.filter(r => r.gun === gun).map(r => r.saat))].sort();
+  const sel = document.getElementById('ps-tasi-saat');
+  sel.innerHTML = saatler.map(s => `<option value="${s}" ${s === secilenSaat ? 'selected' : ''}>${s}</option>`).join('');
+}
+
+async function programSporucuTasi() {
+  const id = document.getElementById('ps-id').value;
+  if (!id) return;
+  const yeniGun = document.getElementById('ps-tasi-gun').value;
+  const yeniSaat = document.getElementById('ps-tasi-saat').value;
+  const yeniSalon = document.getElementById('ps-tasi-salon').value;
+  if (!yeniSaat) { toast('Saat seçiniz', true); return; }
+  try {
+    await db('ders_programi', 'PATCH', { gun: yeniGun, saat: yeniSaat, salon: yeniSalon }, `?id=eq.${id}`);
+    const idx = programCache.findIndex(x => x.id === id);
+    if (idx > -1) { programCache[idx].gun = yeniGun; programCache[idx].saat = yeniSaat; programCache[idx].salon = yeniSalon; }
+    closeModal('m-program-sporcu');
+    toast(`✓ ${programCache.find(x=>x.id===id)?.sporcu_adi || 'Sporcu'} taşındı`);
+    renderProgram();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+function programYeniSporcu(gun, saat, salon) {
+  document.getElementById('m-ps-title').textContent = 'Sporcu Ekle';
+  document.getElementById('ps-id').value = '';
+  document.getElementById('ps-id').dataset.gun = gun || aktifGun;
+  document.getElementById('ps-id').dataset.saat = saat || '';
+  document.getElementById('ps-ad').value = '';
+  document.getElementById('ps-yas').value = '';
+  document.getElementById('ps-yay').value = '';
+  document.getElementById('ps-salon').value = salon || 'İç';
+  document.getElementById('ps-telafi').checked = false;
+  document.getElementById('ps-sil-btn').style.display = 'none';
+  openModal('m-program-sporcu');
+}
+
+function programYeniSaat() {
+  const saat = prompt('Yeni saat dilimi girin (örn: 16:30):');
+  if (!saat) return;
+  programYeniSporcu(aktifGun, saat, 'İç');
+}
+
+async function programSporucuKaydet() {
+  const id = document.getElementById('ps-id').value;
+  const body = {
+    sporcu_adi: document.getElementById('ps-ad').value.trim(),
+    yas: parseInt(document.getElementById('ps-yas').value) || null,
+    yay: document.getElementById('ps-yay').value.trim() || null,
+    salon: document.getElementById('ps-salon').value,
+    telafi: document.getElementById('ps-telafi').checked,
+  };
+  if (!body.sporcu_adi) { toast('Sporcu adı zorunlu', true); return; }
+
+  // Yay kontrolü
+  if (body.yay) {
+    const gun = id ? (programCache.find(x=>x.id===id)?.gun || aktifGun) : (document.getElementById('ps-id').dataset.gun || aktifGun);
+    const saat = id ? (programCache.find(x=>x.id===id)?.saat || '') : document.getElementById('ps-id').dataset.saat;
+    const uyari = await yayKontrol(body.yay, gun, saat, id);
+    if (uyari) {
+      if (!confirm(uyari + '\nYine de kaydetmek istiyor musunuz?')) return;
+    }
+  }
+
+  try {
+    if (id) {
+      await db('ders_programi', 'PATCH', body, `?id=eq.${id}`);
+      const idx = programCache.findIndex(x => x.id === id);
+      if (idx > -1) programCache[idx] = { ...programCache[idx], ...body };
+    } else {
+      body.gun = document.getElementById('ps-id').dataset.gun || aktifGun;
+      body.saat = document.getElementById('ps-id').dataset.saat;
+      if (!body.saat) { toast('Saat bilgisi eksik', true); return; }
+      const result = await db('ders_programi', 'POST', body);
+      if (result && result[0]) programCache.push(result[0]);
+    }
+    closeModal('m-program-sporcu');
+    toast('Kaydedildi');
+    renderProgram();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+// Yay envanteri cache
+let yayEnvanteriCache = [];
+
+async function loadYayEnvanteri() {
+  if (yayEnvanteriCache.length) return;
+  try {
+    yayEnvanteriCache = await db('yay_envanteri', 'GET', null, '?select=*&order=libre.asc');
+  } catch(e) { console.error('Yay envanteri yüklenemedi', e); }
+}
+
+async function yayKontrol(yayStr, gun, saat, haricId) {
+  await loadYayEnvanteri();
+  if (!yayStr || !gun || !saat) return null;
+
+  // Yay adından libre ve tip çıkar (örn: "22 Ahşap", "24 Metal", "Kendi")
+  if (yayStr.toLowerCase().includes('kendi')) return null;
+
+  const parts = yayStr.trim().split(' ');
+  const libre = parseInt(parts[0]);
+  const tip = parts[1] || '';
+  if (!libre || !tip) return null;
+
+  // Envanterde bu yay var mı?
+  const envanter = yayEnvanteriCache.find(y => y.libre === libre && y.tip.toLowerCase() === tip.toLowerCase());
+  if (!envanter) return null;
+
+  // O gün ve saatte kaç kişi bu yayı kullanıyor?
+  const kullananlar = programCache.filter(r =>
+    r.gun === gun &&
+    r.saat === saat &&
+    r.id !== haricId &&
+    r.yay && r.yay.trim().toLowerCase() === yayStr.trim().toLowerCase()
+  );
+
+  if (kullananlar.length >= envanter.adet) {
+    return `⚠️ UYARI: ${yayStr} yayından envanterinizde ${envanter.adet} adet var, ancak ${gun} ${saat} dersinde zaten ${kullananlar.length} kişi kullanıyor! Kullanıcılar: ${kullananlar.map(r=>r.sporcu_adi).join(', ')}`;
+  } else if (kullananlar.length === envanter.adet - 1) {
+    toast(`⚠️ ${yayStr} için son 1 adet kaldı!`, false);
+  }
+  return null;
+}
+
+async function programSporucuSil() {
+  const id = document.getElementById('ps-id').value;
+  if (!id || !confirm('Bu sporcuyu ders programından silmek istiyor musunuz?')) return;
+  try {
+    await db('ders_programi', 'DELETE', null, `?id=eq.${id}`);
+    programCache = programCache.filter(x => x.id !== id);
+    closeModal('m-program-sporcu');
+    toast('Silindi');
+    renderProgram();
+  } catch(e) { toast('Hata', true); }
+}
+
+// GELİR GİDER
+async function loadGelir() {
+  try {
+    const data = await db('gelir_gider', 'GET', null, '?select=*&order=tarih.desc');
+    const totalGelir = data.filter(g => g.tur === 'gelir').reduce((a, b) => a + Number(b.tutar), 0);
+    const totalGider = data.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
+    const kar = totalGelir - totalGider;
+    document.getElementById('gelir-stats').innerHTML = `
+      <div class="stat"><div class="stat-label">Toplam Gelir</div><div class="stat-val green">${fmtMoney(totalGelir)}</div></div>
+      <div class="stat"><div class="stat-label">Toplam Gider</div><div class="stat-val red">${fmtMoney(totalGider)}</div></div>
+      <div class="stat"><div class="stat-label">Net Kar</div><div class="stat-val ${kar>=0?'green':'red'}">${fmtMoney(kar)}</div></div>
+      <div class="stat"><div class="stat-label">Kar Marjı</div><div class="stat-val purple">${totalGelir > 0 ? Math.round((kar/totalGelir)*100) : 0}%</div></div>
+    `;
+    const tbody = document.getElementById('gelir-tbody');
+    if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Henüz kayıt yok</td></tr>'; return; }
+    // Otomatik eklenen kategoriler
+    const otomatikKategoriler = ['aidat','pay','kira','sigorta'];
+    tbody.innerHTML = data.map(g => {
+      const elleGirildi = !otomatikKategoriler.includes(g.kategori);
+      const satirStyle = elleGirildi ? 'background:var(--accent-light)' : '';
+      const kategoriLabel = {
+        aidat:'Aidat', ekipman:'Ekipman', kira:'Kira', fatura:'Fatura',
+        sigorta:'Sigorta', pay:'Koray Öğüt Pay', malzeme_satis:'Malzeme Satışı',
+        diger_gelir:'Diğer Gelir', maas:'Maaş', bakim:'Bakım/Onarım', diger:'Diğer'
+      }[g.kategori] || g.kategori;
+      return `<tr style="${satirStyle}">
+        <td>${fmtDate(g.tarih)}</td>
+        <td>${g.aciklama}${elleGirildi ? ' <span style="font-size:10px;background:var(--accent);color:#fff;padding:1px 5px;border-radius:10px">El ile</span>' : ''}</td>
+        <td><span class="badge gray">${kategoriLabel}</span></td>
+        <td><span class="badge ${g.tur==='gelir'?'green':'red'}">${g.tur==='gelir'?'Gelir':'Gider'}</span></td>
+        <td class="${g.tur==='gelir'?'amount-pos':'amount-neg'}">${g.tur==='gelir'?'+':'-'}${fmtMoney(g.tutar)}</td>
+        <td><button class="btn sm danger" onclick="deleteGelir('${g.id}')">Sil</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { toast('Yükleme hatası', true); }
+}
+
+function openGelir() {
+  document.getElementById('g-id').value = '';
+  document.getElementById('g-tarih').value = new Date().toISOString().split('T')[0];
+  document.getElementById('g-aciklama').value = '';
+  document.getElementById('g-tutar').value = '';
+  document.getElementById('g-tur').value = 'gelir';
+  document.getElementById('g-kategori').value = 'aidat';
+  openModal('m-gelir');
+}
+
+async function saveGelir() {
+  const body = {
+    tarih: document.getElementById('g-tarih').value,
+    aciklama: document.getElementById('g-aciklama').value || '-',
+    kategori: document.getElementById('g-kategori').value,
+    tur: document.getElementById('g-tur').value,
+    tutar: parseFloat(document.getElementById('g-tutar').value) || 0,
+  };
+  if (!body.tarih) { toast('Tarih zorunlu', true); return; }
+  try {
+    await db('gelir_gider', 'POST', body);
+    closeModal('m-gelir');
+    toast('Kayıt eklendi');
+    loadGelir();
+  } catch(e) { toast('Kayıt hatası', true); }
+}
+
+async function deleteGelir(id) {
+  if (!confirm('Bu kaydı silmek istiyor musunuz?')) return;
+  await db('gelir_gider', 'DELETE', null, `?id=eq.${id}`);
+  toast('Kayıt silindi');
+  loadGelir();
+}
+
+// EKİPMAN
+async function loadEkipman() {
+  try {
+    const [data, yaylar] = await Promise.all([
+      db('ekipmanlar', 'GET', null, '?select=*&order=olusturma_tarihi.desc'),
+      db('yay_envanteri', 'GET', null, '?select=*&order=libre.asc')
+    ]);
+    
+    // Yay envanteri tablosunu göster
+    const yayDiv = document.getElementById('yay-envanter-tablo');
+    if (yayDiv) {
+      if (yaylar.length) {
+        yayDiv.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Libre</th>
+            <th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Tip</th>
+            <th style="padding:8px 14px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Adet</th>
+          </tr></thead>
+          <tbody>${yaylar.map(y => `<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 14px;font-weight:500">${y.libre} Libre</td>
+            <td style="padding:9px 14px">${y.tip}</td>
+            <td style="padding:9px 14px">${y.adet}</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+      } else {
+        yayDiv.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:13px;text-align:center">Yay kaydı yok</div>';
+      }
+    }
+
+    const tbody = document.getElementById('ekipman-tbody');
+    if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Henüz ekipman kaydı yok</td></tr>'; return; }
+    tbody.innerHTML = data.map(e => `
+      <tr>
+        <td style="font-weight:500">${e.ekipman_adi}</td>
+        <td>${e.adet}</td>
+        <td>${fmtMoney(e.birim_maliyet)}</td>
+        <td style="font-weight:500">${fmtMoney(e.adet * e.birim_maliyet)}</td>
+        <td>${fmtDate(e.alim_tarihi)}</td>
+        <td><span class="badge ${e.durum==='iyi'?'green':e.durum==='bozuk'?'red':'amber'}">${e.durum==='iyi'?'İyi':e.durum==='bozuk'?'Bozuk':'Yıpranıyor'}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn sm danger" onclick="deleteEkipman('${e.id}')">Sil</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { toast('Yükleme hatası', true); }
+}
+
+function openEkipman() {
+  document.getElementById('e-id').value = '';
+  document.getElementById('e-ad').value = '';
+  document.getElementById('e-adet').value = '1';
+  document.getElementById('e-maliyet').value = '';
+  document.getElementById('e-tarih').value = new Date().toISOString().split('T')[0];
+  document.getElementById('e-durum').value = 'iyi';
+  openModal('m-ekipman');
+}
+
+async function saveEkipman() {
+  const body = {
+    ekipman_adi: document.getElementById('e-ad').value,
+    adet: parseInt(document.getElementById('e-adet').value) || 1,
+    birim_maliyet: parseFloat(document.getElementById('e-maliyet').value) || 0,
+    alim_tarihi: document.getElementById('e-tarih').value || null,
+    durum: document.getElementById('e-durum').value,
+  };
+  if (!body.ekipman_adi) { toast('Ekipman adı zorunlu', true); return; }
+  try {
+    await db('ekipmanlar', 'POST', body);
+    closeModal('m-ekipman');
+    toast('Ekipman eklendi');
+    loadEkipman();
+  } catch(e) { toast('Kayıt hatası', true); }
+}
+
+async function deleteEkipman(id) {
+  if (!confirm('Bu ekipmanı silmek istiyor musunuz?')) return;
+  await db('ekipmanlar', 'DELETE', null, `?id=eq.${id}`);
+  toast('Ekipman silindi');
+  loadEkipman();
+}
+
+// AUTH
+const AUTH_USER = 'edremitokculuk';
+const AUTH_HASH = '7a3f9c2e1b4d6f8a0e5c7b9d2f4a6c8e1b3d5f7a9c2e4b6d8f0a2c4e6b8d0f2';
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  if (!u || !p) { errEl.textContent = 'Kullanıcı adı ve şifre giriniz.'; return; }
+  if (u !== 'edremitokculuk' || p !== 'HEPC.G3.5T.8.K.9') {
+    errEl.textContent = 'Kullanıcı adı veya şifre hatalı.';
+    document.getElementById('login-pass').value = '';
+    return;
+  }
+  localStorage.setItem('auth', 'ok');
+  document.getElementById('login-screen').style.display = 'none';
+  document.querySelector('.sidebar').style.display = 'flex';
+  document.querySelector('.main').style.display = 'flex';
+  init();
+}
+
+function doLogout() {
+  localStorage.removeItem('auth');
+  location.reload();
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+// INIT
+async function init() {
+  try {
+    await db('sporcular', 'GET', null, '?limit=1');
+    document.getElementById('conn-dot').className = 'conn-dot ok';
+    document.getElementById('conn-text').textContent = 'Bağlı';
+  } catch(e) {
+    document.getElementById('conn-dot').className = 'conn-dot err';
+    document.getElementById('conn-text').textContent = 'Bağlantı yok';
+  }
+  loadDashboard();
+}
+
+if (localStorage.getItem('auth') === 'ok') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.querySelector('.sidebar').style.display = 'flex';
+  document.querySelector('.main').style.display = 'flex';
+  init();
+}
+</script>
+
+
+</body></html>
