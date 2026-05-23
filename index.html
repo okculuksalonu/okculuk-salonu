@@ -343,8 +343,13 @@
     <!-- EKİPMAN -->
     <div class="page" id="page-ekipman">
       <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><span class="card-title">🏹 Yay Envanteri</span></div>
-        <div id="yay-envanter-tablo"><div class="loading"><div class="spinner"></div></div></div>
+        <button onclick="toggleYayEnvanteri()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:none;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;color:var(--text)">
+          <span>🏹 Yay Envanteri</span>
+          <span id="yay-envanter-icon" style="font-size:11px;color:var(--muted)">▼ Göster</span>
+        </button>
+        <div id="yay-envanter-panel" style="display:none;border-top:1px solid var(--border)">
+          <div id="yay-envanter-tablo"></div>
+        </div>
       </div>
       <div class="card" style="margin-bottom:14px">
         <div class="card-header">
@@ -2122,6 +2127,22 @@ async function deleteGelir(id) {
   await db('gelir_gider', 'DELETE', null, `?id=eq.${id}`);
   toast('Kayıt silindi');
   loadGelir();
+}
+
+function toggleYayEnvanteri() {
+  const panel = document.getElementById('yay-envanter-panel');
+  const icon = document.getElementById('yay-envanter-icon');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    icon.textContent = '▲ Gizle';
+    // Henüz yüklenmemişse yükle
+    if (!document.querySelector('#yay-envanter-tablo table')) {
+      loadEkipman();
+    }
+  } else {
+    panel.style.display = 'none';
+    icon.textContent = '▼ Göster';
+  }
 }
 
 // MALZEMELER
