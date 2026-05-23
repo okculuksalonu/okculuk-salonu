@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_67.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_68.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -546,12 +546,18 @@
       <span class="modal-title">📷 QR Kod Okut</span>
       <button class="btn sm" onclick="qrOkuyucuKapat()">✕</button>
     </div>
-    <div style="position:relative;width:100%;background:#000;border-radius:var(--radius-sm);overflow:hidden">
+    <div style="position:relative;width:100%;background:#000;border-radius:var(--radius-sm);overflow:hidden;min-height:250px">
       <video id="qr-video" style="width:100%;display:block" playsinline="" autoplay=""></video>
       <canvas id="qr-canvas" style="display:none"></canvas>
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;border:2px solid #7F77DD;border-radius:8px;pointer-events:none"></div>
+      <div id="qr-overlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid #7F77DD;border-radius:8px;pointer-events:none;display:none"></div>
     </div>
-    <div style="font-size:12px;color:#aaa;text-align:center;margin-top:8px">QR kodu kare içine getirin</div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px">QR kodu kare içine getirin</div>
+    <div style="margin-top:8px;text-align:center">
+      <label class="btn sm" style="cursor:pointer">
+        📷 Fotoğraf Çekerek Okut
+        <input type="file" accept="image/*" capture="environment" id="qr-foto-input" style="display:none" onchange="qrFotoOku(this)">
+      </label>
+    </div>
     <div id="qr-sonuc" style="margin-top:12px;display:none;padding:12px;background:var(--bg);border-radius:var(--radius-sm);text-align:center"></div>
   </div>
 </div>
@@ -2234,6 +2240,31 @@ function qrOkuyucuAc() {
     sonuc.style.display = 'block';
     sonuc.innerHTML = `<div style="color:var(--red)">⚠️ Kamera açılamadı: ${e.message}</div>`;
   });
+}
+
+async function qrFotoOku(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const sonuc = document.getElementById('qr-sonuc');
+  sonuc.style.display = 'block';
+  sonuc.innerHTML = '<div class="loading"><div class="spinner"></div> Okunuyor...</div>';
+  
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('qr-canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) {
+      qrIsle(code.data);
+    } else {
+      sonuc.innerHTML = '<div style="color:var(--red)">QR kod okunamadı, tekrar deneyin</div>';
+    }
+  };
+  img.src = URL.createObjectURL(file);
 }
 
 function qrOkuyucuKapat() {
