@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_82.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_83.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2710,7 +2710,7 @@ async function qrMalzemeDusEkrani() {
         if (v.fiyat > 0) {
           await db('gelir_gider', 'POST', { tarih: new Date().toISOString().split('T')[0], aciklama: `${malzemeAd} - ${v.marka} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: v.fiyat });
         }
-        toast(`✓ ${v.marka} satıldı! ${v.fiyat > 0 ? v.fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+        toast(`✓ ${v.marka} satışı onaylandı! ${v.fiyat > 0 ? v.fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
       };
       document.getElementById('var-iptal-btn').onclick = () => overlay.remove();
     } catch(e) { toast('Hata: ' + e.message, true); }
