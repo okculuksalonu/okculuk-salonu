@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_73.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_75.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -575,6 +575,29 @@
     <div class="modal-footer" style="justify-content:center">
       <button class="btn primary" onclick="window.print()">🖨️ Yazdır</button>
       <button class="btn" onclick="closeModal(&#39;m-qr-goster&#39;)">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Varyant Modal -->
+<div class="overlay" id="m-varyant">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title" id="m-varyant-title">Varyant Ekle</span>
+      <button class="btn sm" onclick="closeModal(&#39;m-varyant&#39;)">✕</button>
+    </div>
+    <input type="hidden" id="var-id">
+    <input type="hidden" id="var-malzeme-id">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="var-malzeme-ad"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Marka / Model Adı</label><input id="var-marka" type="text" placeholder="örn: Win&amp;Win, SF, Beiter"></div>
+      <div class="form-group"><label>Adet</label><input id="var-adet" type="number" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Fiyat (₺)</label><input id="var-fiyat" type="number" placeholder="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger" id="var-sil-btn" onclick="varyantSil()" style="display:none">Sil</button>
+      <button class="btn" onclick="closeModal(&#39;m-varyant&#39;)">İptal</button>
+      <button class="btn primary" onclick="varyantKaydet()">Kaydet</button>
     </div>
   </div>
 </div>
@@ -2115,17 +2138,40 @@ async function loadMalzemeler() {
       }
     }
 
+    // Varyantları da yükle
+    const varyantlar = await db('malzeme_varyantlar', 'GET', null, '?select=*&order=marka.asc');
+    const varyantMap = {};
+    varyantlar.forEach(v => {
+      if (!varyantMap[v.malzeme_id]) varyantMap[v.malzeme_id] = [];
+      varyantMap[v.malzeme_id].push(v);
+    });
+
     tbody.innerHTML = data.map(m => {
-      const azUyari = m.adet <= 1 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
-      return `<tr style="${m.adet <= 1 ? 'background:#FFF8F8' : ''}">
+      const mvaryantlar = varyantMap[m.id] || [];
+      const toplamAdet = mvaryantlar.reduce((a,b) => a + b.adet, 0);
+      const azUyari = toplamAdet <= 1 && mvaryantlar.length > 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : 
+                      m.adet <= 1 && mvaryantlar.length === 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
+      
+      const varyantRows = mvaryantlar.map(v => `
+        <tr style="background:#FAFAF8">
+          <td style="padding-left:24px;font-size:12px;color:var(--muted)">↳ ${v.marka}</td>
+          <td style="font-size:12px">${v.adet}</td>
+          <td style="font-size:12px">${v.fiyat ? v.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn sm" onclick="varyantDuzenle('${v.id}','${m.id}')">Düzenle</button>
+          </td>
+        </tr>`).join('');
+
+      return `<tr>
         <td style="font-weight:500">${m.ad}${azUyari}</td>
-        <td style="font-weight:600;color:${m.adet <= 1 ? 'var(--red)' : 'var(--text)'}">${m.adet}</td>
-        <td>${m.fiyat ? m.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
+        <td style="font-weight:600;color:${(toplamAdet <= 1 && mvaryantlar.length > 0) || (m.adet <= 1 && mvaryantlar.length === 0) ? 'var(--red)' : 'var(--text)'}">${mvaryantlar.length > 0 ? toplamAdet + ' (toplam)' : m.adet}</td>
+        <td>${mvaryantlar.length > 0 ? '<span style="font-size:11px;color:var(--muted)">Varyantlara göre</span>' : (m.fiyat ? m.fiyat.toLocaleString('tr-TR') + ' ₺' : '-')}</td>
         <td style="white-space:nowrap">
           <button class="btn sm" onclick="qrGoster('${m.id}','${m.ad.replace(/'/g,'\'')}','${m.qr_kod||''}')">🔲 QR</button>
+          <button class="btn sm primary" onclick="varyantEkle('${m.id}','${m.ad.replace(/'/g,'\'')}')">+ Varyant</button>
           <button class="btn sm" onclick="malzemeDuzenle('${m.id}')">Düzenle</button>
         </td>
-      </tr>`;
+      </tr>${varyantRows}`;
     }).join('');
   } catch(e) { toast('Malzeme yükleme hatası', true); }
 }
@@ -2180,6 +2226,62 @@ async function malzemeSil() {
     toast('Silindi');
     loadMalzemeler();
   } catch(e) { toast('Hata', true); }
+}
+
+// VARYANT FONKSİYONLARI
+function varyantEkle(malzemeId, malzemeAd) {
+  document.getElementById('m-varyant-title').textContent = 'Varyant Ekle';
+  document.getElementById('var-id').value = '';
+  document.getElementById('var-malzeme-id').value = malzemeId;
+  document.getElementById('var-malzeme-ad').textContent = malzemeAd;
+  document.getElementById('var-marka').value = '';
+  document.getElementById('var-adet').value = '0';
+  document.getElementById('var-fiyat').value = '';
+  document.getElementById('var-sil-btn').style.display = 'none';
+  openModal('m-varyant');
+}
+
+async function varyantDuzenle(varyantId, malzemeId) {
+  const data = await db('malzeme_varyantlar', 'GET', null, `?id=eq.${varyantId}&select=*`);
+  if (!data.length) return;
+  const v = data[0];
+  const malzData = await db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=ad`);
+  document.getElementById('m-varyant-title').textContent = 'Varyant Düzenle';
+  document.getElementById('var-id').value = v.id;
+  document.getElementById('var-malzeme-id').value = malzemeId;
+  document.getElementById('var-malzeme-ad').textContent = malzData[0]?.ad || '';
+  document.getElementById('var-marka').value = v.marka;
+  document.getElementById('var-adet').value = v.adet;
+  document.getElementById('var-fiyat').value = v.fiyat || '';
+  document.getElementById('var-sil-btn').style.display = 'inline-flex';
+  openModal('m-varyant');
+}
+
+async function varyantKaydet() {
+  const id = document.getElementById('var-id').value;
+  const body = {
+    malzeme_id: document.getElementById('var-malzeme-id').value,
+    marka: document.getElementById('var-marka').value.trim(),
+    adet: parseInt(document.getElementById('var-adet').value) || 0,
+    fiyat: parseFloat(document.getElementById('var-fiyat').value) || 0,
+  };
+  if (!body.marka) { toast('Marka adı zorunlu', true); return; }
+  try {
+    if (id) await db('malzeme_varyantlar', 'PATCH', body, `?id=eq.${id}`);
+    else await db('malzeme_varyantlar', 'POST', body);
+    closeModal('m-varyant');
+    toast('Kaydedildi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+async function varyantSil() {
+  const id = document.getElementById('var-id').value;
+  if (!id || !confirm('Bu varyantı silmek istiyor musunuz?')) return;
+  await db('malzeme_varyantlar', 'DELETE', null, `?id=eq.${id}`);
+  closeModal('m-varyant');
+  toast('Silindi');
+  loadMalzemeler();
 }
 
 // QR KOD
@@ -2294,32 +2396,91 @@ async function qrIsle(kod) {
   const malzemeAd = parts.slice(2).join(':');
 
   try {
-    const data = await db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`);
-    if (!data.length) { sonuc.innerHTML = '<div style="color:var(--red)">Malzeme bulunamadı</div>'; return; }
-    const m = data[0];
+    const [malzData, varyantData] = await Promise.all([
+      db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`),
+      db('malzeme_varyantlar', 'GET', null, `?malzeme_id=eq.${malzemeId}&select=*&order=marka.asc`)
+    ]);
+    if (!malzData.length) { sonuc.innerHTML = '<div style="color:var(--red)">Malzeme bulunamadı</div>'; return; }
+    const m = malzData[0];
 
-    sonuc.innerHTML = `
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px">📦 ${m.ad}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        <button class="btn danger" onclick="malzemeAdetDus('${m.id}','${m.ad}',${m.adet})">
-          − 1 Adet Düş
-        </button>
-        <button class="btn" onclick="qrOkuyucuKapat()">İptal</button>
-      </div>`;
+    if (varyantData.length > 0) {
+      // Varyant seçimi göster
+      const varyantBtns = varyantData.map(v => `
+        <button class="btn" onclick="varyantSat('${v.id}','${v.marka}',${v.adet},${v.fiyat||0},'${m.ad}')" 
+          style="width:100%;justify-content:space-between;margin-bottom:6px;${v.adet===0?'opacity:.4;pointer-events:none':''}">
+          <span>${v.marka} ${v.adet===0?'(Tükendi)':''}</span>
+          <span>${v.adet} adet · ${v.fiyat?v.fiyat.toLocaleString('tr-TR')+' ₺':'-'}</span>
+        </button>`).join('');
+      sonuc.innerHTML = `
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px">📦 ${m.ad} — Hangi marka?</div>
+        ${varyantBtns}
+        <button class="btn" onclick="qrOkuyucuKapat()" style="width:100%;margin-top:4px">İptal</button>`;
+    } else {
+      sonuc.innerHTML = `
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px">📦 ${m.ad}</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn danger" onclick="malzemeAdetDus('${m.id}','${m.ad}',${m.adet},${m.fiyat||0})">
+            − 1 Adet Düş (Sat)
+          </button>
+          <button class="btn" onclick="qrOkuyucuKapat()">İptal</button>
+        </div>`;
+    }
   } catch(e) {
     sonuc.innerHTML = '<div style="color:var(--red)">Hata: ' + e.message + '</div>';
   }
 }
 
-async function malzemeAdetDus(id, ad, mevcutAdet) {
+async function varyantSatOverlay(varyantId, marka, mevcutAdet, fiyat, malzemeAd) {
+  if (window._qrOverlay) window._qrOverlay.remove();
+  if (mevcutAdet <= 0) { toast('Stok tükendi!', true); return; }
+  await db('malzeme_varyantlar', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${varyantId}`);
+  if (fiyat > 0) {
+    const bugun = new Date().toISOString().split('T')[0];
+    await db('gelir_gider', 'POST', { tarih: bugun, aciklama: `${malzemeAd} - ${marka} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: fiyat });
+  }
+  toast(`✓ ${marka} satıldı! ${fiyat > 0 ? fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+}
+
+async function varyantSat(varyantId, marka, mevcutAdet, fiyat, malzemeAd) {
+  if (mevcutAdet <= 0) { toast('Stok tükendi!', true); return; }
+  try {
+    await db('malzeme_varyantlar', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${varyantId}`);
+    if (fiyat > 0) {
+      const bugun = new Date().toISOString().split('T')[0];
+      await db('gelir_gider', 'POST', {
+        tarih: bugun,
+        aciklama: `${malzemeAd} - ${marka} satışı`,
+        kategori: 'malzeme_satis',
+        tur: 'gelir',
+        tutar: fiyat
+      });
+    }
+    toast(`✓ ${marka} satıldı! ${fiyat > 0 ? fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+    qrOkuyucuKapat();
+    loadMalzemeler();
+  } catch(e) { toast('Hata', true); }
+}
+
+async function malzemeAdetDus(id, ad, mevcutAdet, fiyat) {
   if (mevcutAdet <= 0) {
     toast('Stok zaten 0!', true);
     return;
   }
   try {
     await db('malzemeler', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${id}`);
-    toast(`✓ ${ad} — 1 adet düşüldü (Kalan: ${mevcutAdet - 1})`);
+    // Fiyat varsa gelir olarak ekle
+    if (fiyat && fiyat > 0) {
+      const bugun = new Date().toISOString().split('T')[0];
+      await db('gelir_gider', 'POST', {
+        tarih: bugun,
+        aciklama: `${ad} satışı`,
+        kategori: 'malzeme_satis',
+        tur: 'gelir',
+        tutar: fiyat
+      });
+    }
+    toast(`✓ ${ad} satıldı! ${fiyat > 0 ? fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''} (Kalan: ${mevcutAdet - 1})`);
     qrOkuyucuKapat();
     loadMalzemeler();
   } catch(e) { toast('Hata', true); }
@@ -2543,9 +2704,10 @@ async function qrMalzemeDusEkrani() {
       <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;text-align:center;border:1px solid var(--border)">
         <div style="font-size:32px;margin-bottom:12px">📦</div>
         <div style="font-size:16px;font-weight:600;margin-bottom:6px">${m.ad}</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+        ${m.fiyat > 0 ? `<div style="font-size:14px;font-weight:600;color:var(--green);margin-bottom:16px">${m.fiyat.toLocaleString('tr-TR')} ₺ gelir eklenecek</div>` : '<div style="margin-bottom:16px"></div>'}
         <div style="display:flex;gap:10px;justify-content:center">
-          <button class="btn primary" id="qr-onay-btn" style="flex:1">✓ 1 Adet Düş</button>
+          <button class="btn primary" id="qr-onay-btn" style="flex:1">✓ Sat & Düş</button>
           <button class="btn" id="qr-iptal-btn" style="flex:1">İptal</button>
         </div>
       </div>`;
