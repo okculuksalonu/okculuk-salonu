@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_80.html -->
+<!-- saved from url=(0055)file:///C:/Users/isimi/Downloads/okculuk-salonu_82.html -->
 <html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -143,7 +143,7 @@
   .amount-pos { color: var(--green); font-weight: 600; }
   .amount-neg { color: var(--red); font-weight: 600; }
 </style>
-<script src="./index_files/jsQR.js.indir"></script>
+
 </head>
 <body>
 
@@ -2342,9 +2342,7 @@ function qrOkuyucuAc() {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'dontInvert'
-        });
+        const code = typeof jsQR !== "undefined" ? jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" }) : null;
         if (code) {
           clearInterval(qrScanInterval);
           qrScanInterval = null;
@@ -2374,7 +2372,7 @@ async function qrFotoOku(input) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    const code = typeof jsQR !== "undefined" ? jsQR(imageData.data, imageData.width, imageData.height) : null;
     if (code) {
       qrIsle(code.data);
     } else {
