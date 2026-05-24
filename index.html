@@ -1229,17 +1229,72 @@ async function loadDashboard() {
         </div>`;
     }).join('');
 
-    // Malzeme uyarısı kontrol et
+    // Malzeme uyarısı kontrol et (varyant ve beden dahil)
     try {
-      const malzemeler = await db('malzemeler', 'GET', null, '?adet=lte.1&select=ad,adet');
-      if (malzemeler.length > 0) {
-        const eskiKartlar = document.getElementById('malzeme-uyari');
-        if (eskiKartlar) eskiKartlar.remove();
+      const [tumMalzemeler, tumVaryantlar, tumBedenler] = await Promise.all([
+        db('malzemeler', 'GET', null, '?select=id,ad,adet').catch(() => []),
+        db('malzeme_varyantlar', 'GET', null, '?select=id,malzeme_id,marka,adet').catch(() => []),
+        db('varyant_bedenler', 'GET', null, '?select=id,varyant_id,beden,adet').catch(() => [])
+      ]);
+
+      // Beden → varyant map
+      const bedenByVar = {};
+      tumBedenler.forEach(b => {
+        if (!bedenByVar[b.varyant_id]) bedenByVar[b.varyant_id] = [];
+        bedenByVar[b.varyant_id].push(b);
+      });
+
+      // Varyant → malzeme map
+      const varByMalz = {};
+      tumVaryantlar.forEach(v => {
+        if (!varByMalz[v.malzeme_id]) varByMalz[v.malzeme_id] = [];
+        varByMalz[v.malzeme_id].push(v);
+      });
+
+      const azKalanlar = [];
+
+      tumMalzemeler.forEach(m => {
+        const varyantlar = varByMalz[m.id] || [];
+        if (varyantlar.length === 0) {
+          // Varyant yok, direkt adet
+          if (m.adet === 0) {
+            azKalanlar.push({ ad: m.ad, detay: null, adet: m.adet });
+          }
+        } else {
+          // Varyantları kontrol et
+          varyantlar.forEach(v => {
+            const bedenler = bedenByVar[v.id] || [];
+            if (bedenler.length === 0) {
+              // Bedensiz varyant
+              if (v.adet === 0) {
+                azKalanlar.push({ ad: m.ad, detay: v.marka, adet: v.adet });
+              }
+            } else {
+              // Bedenleri kontrol et
+              bedenler.forEach(b => {
+                if (b.adet === 0) {
+                  azKalanlar.push({ ad: m.ad, detay: v.marka + ' / ' + b.beden, adet: b.adet });
+                }
+              });
+            }
+          });
+        }
+      });
+
+      const eskiUyari = document.getElementById('malzeme-uyari');
+      if (eskiUyari) eskiUyari.remove();
+
+      if (azKalanlar.length > 0) {
         const uyariDiv = document.createElement('div');
         uyariDiv.id = 'malzeme-uyari';
         uyariDiv.style.cssText = 'background:#FCEBEB;border:1px solid #FFCCCC;border-radius:var(--radius);padding:12px 16px;margin-bottom:12px';
-        uyariDiv.innerHTML = `<div style="font-size:12px;font-weight:600;color:#A32D2D;margin-bottom:6px">⚠️ Az Kalan Malzemeler</div>
-          ${malzemeler.map(m => `<div style="font-size:12px;color:#A32D2D">• ${m.ad}: ${m.adet} adet kaldı</div>`).join('')}`;
+        uyariDiv.innerHTML = `
+          <div style="font-size:12px;font-weight:600;color:#A32D2D;margin-bottom:8px">⚠️ Stoku Biten Malzemeler (${azKalanlar.length} kalem)</div>
+          ${azKalanlar.map(x => `
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#A32D2D;padding:3px 0;border-bottom:1px solid #FFCCCC">
+              <span>• ${x.ad}${x.detay ? ' <span style="color:#C05050">(' + x.detay + ')</span>' : ''}</span>
+              <span style="font-weight:600;margin-left:12px">${x.adet} adet</span>
+            </div>`).join('')}`;
         document.getElementById('yil-kartlari').before(uyariDiv);
       }
     } catch(e) {}
@@ -2226,7 +2281,17 @@ async function loadMalzemeler() {
 
     tbody.innerHTML = data.map(m => {
       const mvaryantlar = varyantMap[m.id] || [];
-      const toplamAdet = mvaryantlar.reduce((a,b) => a + b.adet, 0);
+
+      // Her varyantın gerçek adeti: bedeni varsa beden toplamı, yoksa kendi adeti
+      const varyantGercekAdet = (v) => {
+        const vBedenler = bedenByVaryant[v.id] || [];
+        return vBedenler.length > 0
+          ? vBedenler.reduce((s, b) => s + (b.adet || 0), 0)
+          : v.adet;
+      };
+
+      // Ana başlık toplamı: tüm varyantların gerçek adetleri
+      const toplamAdet = mvaryantlar.reduce((a, v) => a + varyantGercekAdet(v), 0);
       const azUyari = toplamAdet <= 1 && mvaryantlar.length > 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : 
                       m.adet <= 1 && mvaryantlar.length === 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
       
@@ -2242,7 +2307,7 @@ async function loadMalzemeler() {
           </tr>`).join('');
         return `<tr style="background:#FAFAF8">
           <td style="padding-left:24px;font-size:12px;color:var(--muted)">↳ ${v.marka}</td>
-          <td style="font-size:12px">${v.adet}</td>
+          <td style="font-size:12px">${varyantGercekAdet(v)}</td>
           <td style="font-size:12px">${v.fiyat ? v.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
           <td style="white-space:nowrap;display:flex;align-items:center;gap:8px">
             <img src="${qrImg}" style="width:40px;height:40px;cursor:pointer;border-radius:4px" onclick="varyantQrGoster('${v.id}','${v.marka}','${m.ad}',this.src.replace('80x80','200x200'))" title="QR Göster">
@@ -2256,8 +2321,8 @@ async function loadMalzemeler() {
         <td style="font-weight:600;color:${(toplamAdet <= 1 && mvaryantlar.length > 0) || (m.adet <= 1 && mvaryantlar.length === 0) ? 'var(--red)' : 'var(--text)'}">${mvaryantlar.length > 0 ? toplamAdet + ' (toplam)' : m.adet}</td>
         <td>${mvaryantlar.length > 0 ? '<span style="font-size:11px;color:var(--muted)">Varyantlara göre</span>' : (m.fiyat ? m.fiyat.toLocaleString('tr-TR') + ' ₺' : '-')}</td>
         <td style="white-space:nowrap">
-          <button class="btn sm" onclick="qrGoster('${m.id}','${m.ad.replace(/'/g,'\'')}','${m.qr_kod||''}')">🔲 QR</button>
-          <button class="btn sm primary" onclick="varyantEkle('${m.id}','${m.ad.replace(/'/g,'\'')}')">+ Varyant</button>
+          ${mvaryantlar.length === 0 ? `<button class="btn sm" onclick="qrGoster('${m.id}','${m.ad.replace(/'/g,"'")}','${m.qr_kod||''}')">🔲 QR</button>` : ''}
+          <button class="btn sm primary" onclick="varyantEkle('${m.id}','${m.ad.replace(/'/g,"'")}')">+ Varyant</button>
           <button class="btn sm" onclick="malzemeDuzenle('${m.id}')">Düzenle</button>
         </td>
       </tr>${varyantRows}`;
@@ -2352,6 +2417,16 @@ async function varyantDuzenle(varyantId, malzemeId) {
   // Bedenler bölümünü göster
   document.getElementById('var-bedenler-bolum').style.display = 'block';
   renderBedenListesi(bedenData, varyantId);
+
+  // Beden toplamı ile varyant adeti uyuşmuyorsa senkronize et
+  if (bedenData.length > 0) {
+    const bedenToplam = bedenData.reduce((a, b) => a + (b.adet || 0), 0);
+    if (bedenToplam !== v.adet) {
+      document.getElementById('var-adet').value = bedenToplam;
+      await db('malzeme_varyantlar', 'PATCH', { adet: bedenToplam }, `?id=eq.${varyantId}`).catch(() => {});
+    }
+  }
+
   openModal('m-varyant');
 }
 
@@ -2374,7 +2449,13 @@ async function bedenEkle() {
   const adet = parseInt(document.getElementById('var-yeni-beden-adet').value) || 0;
   if (!beden) { toast('Beden adı giriniz', true); return; }
   try {
-    await db('varyant_bedenler', 'POST', { varyant_id: varyantId, beden, adet });
+    const result = await db('varyant_bedenler', 'POST', { varyant_id: varyantId, beden, adet });
+    // Yeni bedene QR kodu oluştur
+    if (result && result[0]) {
+      const bedenId = result[0].id;
+      const qrUrl = `https://okculuksalonu.github.io/okculuk-salonu?beden=${bedenId}`;
+      await db('varyant_bedenler', 'PATCH', { qr_kod: qrUrl }, `?id=eq.${bedenId}`).catch(() => {});
+    }
     document.getElementById('var-yeni-beden').value = '';
     document.getElementById('var-yeni-beden-adet').value = '';
     // Listeyi güncelle
@@ -2588,8 +2669,19 @@ async function qrIsle(kod) {
   }
 }
 
-function varyantQrGoster(id, marka, malzemeAd, qrSrc) {
+function varyantQrGoster(id, marka, malzemeAd) {
+  const qrUrl = `https://okculuksalonu.github.io/okculuk-salonu?varyant=${id}`;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}&bgcolor=ffffff&color=1a1916&margin=10`;
   document.getElementById('qr-goster-baslik').textContent = `${malzemeAd} — ${marka}`;
+  const icerik = document.getElementById('qr-goster-icerik');
+  icerik.innerHTML = `<img src="${qrSrc}" style="width:200px;height:200px;border-radius:8px">`;
+  openModal('m-qr-goster');
+}
+
+function bedenQrGoster(bedenId, beden, marka, malzemeAd) {
+  const qrUrl = `https://okculuksalonu.github.io/okculuk-salonu?beden=${bedenId}`;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}&bgcolor=ffffff&color=1a1916&margin=10`;
+  document.getElementById('qr-goster-baslik').textContent = `${malzemeAd} — ${marka} / ${beden}`;
   const icerik = document.getElementById('qr-goster-icerik');
   icerik.innerHTML = `<img src="${qrSrc}" style="width:200px;height:200px;border-radius:8px">`;
   openModal('m-qr-goster');
@@ -2823,7 +2915,52 @@ async function qrMalzemeDusEkrani() {
   const params = new URLSearchParams(window.location.search);
   let malzemeId = params.get('malzeme');
   const varyantId = params.get('varyant') || localStorage.getItem('bekleyen_varyant');
-  
+  const bedenId = params.get('beden') || localStorage.getItem('bekleyen_beden');
+
+  // Beden ID varsa direkt beden sat
+  if (bedenId) {
+    localStorage.removeItem('bekleyen_beden');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    await new Promise(r => setTimeout(r, 800));
+    try {
+      const bData = await db('varyant_bedenler', 'GET', null, `?id=eq.${bedenId}&select=*`);
+      if (!bData.length) { toast('Beden bulunamadı', true); return; }
+      const b = bData[0];
+      const vData = await db('malzeme_varyantlar', 'GET', null, `?id=eq.${b.varyant_id}&select=*`);
+      const v = vData[0] || {};
+      const mData = await db('malzemeler', 'GET', null, `?id=eq.${v.malzeme_id}&select=ad,fiyat`);
+      const m = mData[0] || {};
+      const fiyat = v.fiyat || m.fiyat || 0;
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+      overlay.innerHTML = `
+        <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:32px;margin-bottom:12px">📦</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">${m.ad || ''}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:2px">${v.marka || ''} / ${b.beden}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Stok: <strong>${b.adet}</strong> adet</div>
+          ${fiyat > 0 ? `<div style="font-size:15px;font-weight:600;color:var(--green);margin-bottom:16px">${fiyat.toLocaleString('tr-TR')} ₺</div>` : '<div style="margin-bottom:16px"></div>'}
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn primary" id="beden-onay-btn" style="flex:1">✓ Sat & Düş</button>
+            <button class="btn" id="beden-iptal-btn" style="flex:1">İptal</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('beden-onay-btn').onclick = async () => {
+        overlay.remove();
+        await db('varyant_bedenler', 'PATCH', { adet: b.adet - 1 }, `?id=eq.${bedenId}`);
+        await bedenToplamGuncelle(b.varyant_id, await db('varyant_bedenler', 'GET', null, `?varyant_id=eq.${b.varyant_id}&select=*`));
+        if (fiyat > 0) {
+          await db('gelir_gider', 'POST', { tarih: new Date().toISOString().split('T')[0], aciklama: `${m.ad} - ${v.marka} / ${b.beden} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: fiyat });
+        }
+        toast(`✓ ${v.marka} / ${b.beden} satıldı!${fiyat > 0 ? ' ' + fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+      };
+      document.getElementById('beden-iptal-btn').onclick = () => overlay.remove();
+    } catch(e) { toast('Hata: ' + e.message, true); }
+    return;
+  }
+
   // Varyant ID varsa direkt varyant sat
   if (varyantId) {
     localStorage.removeItem('bekleyen_varyant');
@@ -2944,12 +3081,17 @@ async function qrUrlKontrol() {
 const __urlParams = new URLSearchParams(window.location.search);
 const __malzemeParam = __urlParams.get('malzeme');
 const __varyantParam = __urlParams.get('varyant');
+const __bedenParam = __urlParams.get('beden');
 if (__malzemeParam) {
   localStorage.setItem('bekleyen_malzeme', __malzemeParam);
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 if (__varyantParam) {
   localStorage.setItem('bekleyen_varyant', __varyantParam);
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+if (__bedenParam) {
+  localStorage.setItem('bekleyen_beden', __bedenParam);
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
