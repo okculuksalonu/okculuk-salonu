@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/Lenovo/Downloads/okculuk-salonu_16.html -->
-<html lang="tr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ok Salonu Yönetim</title>
 <style>
@@ -132,8 +132,8 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* TOAST */
-  #toast { position: fixed; bottom: 20px; right: 20px; background: var(--text); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; z-index: 999; opacity: 0; transition: opacity .3s; pointer-events: none; }
-  #toast.show { opacity: 1; }
+  #toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.9); background: var(--text); color: #fff; padding: 16px 28px; border-radius: 12px; font-size: 15px; font-weight: 600; text-align: center; max-width: 80vw; z-index: 99999; opacity: 0; transition: opacity .4s, transform .4s; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+  #toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 
   .page { display: none; }
   .page.active { display: block; }
@@ -143,6 +143,7 @@
   .amount-pos { color: var(--green); font-weight: 600; }
   .amount-neg { color: var(--red); font-weight: 600; }
 </style>
+
 </head>
 <body>
 
@@ -150,13 +151,14 @@
   <div class="login-box">
     <div class="login-logo">
       <div class="login-logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       </div>
       <div>
         <div class="login-title">Ok Salonu</div>
         <div class="login-sub">Yönetim Paneli</div>
       </div>
     </div>
+    <input type="hidden" id="login-malzeme-id">
     <div class="login-group">
       <label>Şifre</label>
       <input id="login-pass" type="password" placeholder="••••••••••••••••" autocomplete="off">
@@ -168,43 +170,43 @@
 
 <div class="sidebar" style="display:none">
   <div class="logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2L2 12h3v9h6v-6h2v6h6v-9h3L12 2z"></path></svg>
+    <div class="logo-icon" onclick="location.reload()" style="cursor:pointer" title="Sayfayı Yenile">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 12h3v9h6v-6h2v6h6v-9h3L12 2z"/></svg>
     </div>
     <div class="logo-name">Ok Salonu</div>
     <div class="logo-sub">Yönetim Paneli</div>
   </div>
   <nav>
-    <button class="nav-btn active" onclick="goPage(&#39;dashboard&#39;,this)">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
-      Genel Bakış
-    </button>
     <button class="nav-btn" id="nav-sporcular" onclick="toggleSporcularMenu(this)">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Sporcular
-      <svg id="sporcular-chevron" viewBox="0 0 24 24" style="margin-left:auto;width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .2s"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      <svg id="sporcular-chevron" viewBox="0 0 24 24" style="margin-left:auto;width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div id="sporcular-submenu" style="display:none">
-      <button class="nav-btn active" id="nav-aktif" onclick="goSporcular(&#39;aktif&#39;,this)" style="padding-left:28px;font-size:12px">
+      <button class="nav-btn" id="nav-aktif" onclick="goSporcular('aktif',this)" style="padding-left:28px;font-size:12px">
         <span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;flex-shrink:0"></span>
         Aktif Sporcular
       </button>
-      <button class="nav-btn" id="nav-pasif" onclick="goSporcular(&#39;pasif&#39;,this)" style="padding-left:28px;font-size:12px">
+      <button class="nav-btn" id="nav-pasif" onclick="goSporcular('pasif',this)" style="padding-left:28px;font-size:12px">
         <span style="width:8px;height:8px;border-radius:50%;background:#aaa;display:inline-block;flex-shrink:0"></span>
         Pasif Sporcular
       </button>
     </div>
-    <button class="nav-btn" onclick="goPage(&#39;program&#39;,this)">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    <button class="nav-btn active" onclick="goPage('program',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Ders Programı
     </button>
-    <button class="nav-btn" onclick="goPage(&#39;ekipman&#39;,this)">
-      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+    <button class="nav-btn" onclick="goPage('ekipman',this)">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       Ekipmanlar
     </button>
-    <button class="nav-btn" onclick="goPage(&#39;gelir&#39;,this)">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-      Gelir &amp; Gider
+    <button class="nav-btn" onclick="goPage('gelir',this)">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Gelir & Gider
+    </button>
+    <button class="nav-btn" onclick="goPage('dashboard',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Genel Bakış
     </button>
   </nav>
   <div class="sidebar-footer">
@@ -213,7 +215,7 @@
       <span id="conn-text">Bağlanıyor...</span>
     </div>
     <button class="nav-btn" onclick="doLogout()" style="margin-top:8px;color:var(--red)">
-      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Çıkış Yap
     </button>
   </div>
@@ -230,7 +232,7 @@
   <div class="content">
 
     <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
+    <div class="page" id="page-dashboard">
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
         <button class="btn sm" onclick="secAy(1,this)">Ocak</button>
         <button class="btn sm" onclick="secAy(2,this)">Şubat</button>
@@ -274,7 +276,7 @@
                 <option value="02">Şubat</option>
                 <option value="03">Mart</option>
                 <option value="04">Nisan</option>
-                <option value="05" selected="">Mayıs</option>
+                <option value="05" selected>Mayıs</option>
                 <option value="06">Haziran</option>
                 <option value="07">Temmuz</option>
                 <option value="08">Ağustos</option>
@@ -290,7 +292,7 @@
                 <option value="2023">2023</option>
                 <option value="2024">2024</option>
                 <option value="2025">2025</option>
-                <option value="2026" selected="">2026</option>
+                <option value="2026" selected>2026</option>
               </select>
             </div>
           </div>
@@ -316,13 +318,13 @@
     </div>
 
     <!-- DERS PROGRAMI -->
-    <div class="page" id="page-program">
+    <div class="page active" id="page-program">
       <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-        <button class="btn primary" id="gun-Salı" onclick="filterGun(&#39;Salı&#39;,this)">Salı</button>
-        <button class="btn" id="gun-Çarşamba" onclick="filterGun(&#39;Çarşamba&#39;,this)">Çarşamba</button>
-        <button class="btn" id="gun-Perşembe" onclick="filterGun(&#39;Perşembe&#39;,this)">Perşembe</button>
-        <button class="btn" id="gun-Cuma" onclick="filterGun(&#39;Cuma&#39;,this)">Cuma</button>
-        <button class="btn" id="gun-Cumartesi" onclick="filterGun(&#39;Cumartesi&#39;,this)">Cumartesi</button>
+        <button class="btn primary" id="gun-Salı" onclick="filterGun('Salı',this)">Salı</button>
+        <button class="btn" id="gun-Çarşamba" onclick="filterGun('Çarşamba',this)">Çarşamba</button>
+        <button class="btn" id="gun-Perşembe" onclick="filterGun('Perşembe',this)">Perşembe</button>
+        <button class="btn" id="gun-Cuma" onclick="filterGun('Cuma',this)">Cuma</button>
+        <button class="btn" id="gun-Cumartesi" onclick="filterGun('Cumartesi',this)">Cumartesi</button>
       </div>
       <div id="program-content"><div class="loading"><div class="spinner"></div> Yükleniyor...</div></div>
     </div>
@@ -341,8 +343,26 @@
     <!-- EKİPMAN -->
     <div class="page" id="page-ekipman">
       <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><span class="card-title">🏹 Yay Envanteri</span></div>
-        <div id="yay-envanter-tablo"><div class="loading"><div class="spinner"></div></div></div>
+        <button onclick="toggleYayEnvanteri()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:none;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;color:var(--text)">
+          <span>🏹 Yay Envanteri</span>
+          <span id="yay-envanter-icon" style="font-size:11px;color:var(--muted)">▼ Göster</span>
+        </button>
+        <div id="yay-envanter-panel" style="display:none;border-top:1px solid var(--border)">
+          <div id="yay-envanter-tablo"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span class="card-title">🛒 Malzemeler</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="qrOkuyucuAc()">📷 QR Okut</button>
+            <button class="btn sm primary" onclick="malzemeEkle()">+ Malzeme Ekle</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Malzeme</th><th>Adet</th><th>Fiyat (₺)</th><th></th></tr></thead>
+          <tbody id="malzeme-tbody"><tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title">Diğer Ekipmanlar</span></div>
@@ -360,7 +380,7 @@
 <!-- Sporcu Modal -->
 <div class="overlay" id="m-sporcu">
   <div class="modal">
-    <div class="modal-head"><span class="modal-title" id="m-sporcu-title">Sporcu Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-sporcu&#39;)">✕</button></div>
+    <div class="modal-head"><span class="modal-title" id="m-sporcu-title">Sporcu Ekle</span><button class="btn sm" onclick="closeModal('m-sporcu')">✕</button></div>
     <input type="hidden" id="s-id">
     <div class="form-grid">
       <div class="form-group full"><label>Ad Soyad</label><input id="s-ad" type="text" placeholder="Ad Soyad"></div>
@@ -373,14 +393,14 @@
       <div class="form-group"><label>Veli Telefonu</label><input id="s-veli-tel" type="tel" placeholder="05xx xxx xx xx"></div>
       <div class="form-group full"><label>Veli Mesleği</label><input id="s-veli-meslek" type="text" placeholder="Meslek"></div>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-sporcu&#39;)">İptal</button><button class="btn primary" onclick="saveSporcu()">Kaydet</button></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('m-sporcu')">İptal</button><button class="btn primary" onclick="saveSporcu()">Kaydet</button></div>
   </div>
 </div>
 
 <!-- Ödeme Modal -->
 <div class="overlay" id="m-odeme">
   <div class="modal">
-    <div class="modal-head"><span class="modal-title" id="m-odeme-title">Ödeme Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-odeme&#39;)">✕</button></div>
+    <div class="modal-head"><span class="modal-title" id="m-odeme-title">Ödeme Ekle</span><button class="btn sm" onclick="closeModal('m-odeme')">✕</button></div>
     <input type="hidden" id="o-id">
     <div class="form-grid">
       <div class="form-group full"><label>Sporcu</label><select id="o-sporcu"></select></div>
@@ -390,7 +410,7 @@
       <div class="form-group"><label>Ödeme Tarihi</label><input id="o-tarih" type="date"></div>
       <div class="form-group"><label>Durum</label><select id="o-durum"><option value="bekliyor">Bekliyor</option><option value="odendi">Ödendi</option><option value="gecikti">Gecikmiş</option></select></div>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-odeme&#39;)">İptal</button><button class="btn primary" onclick="saveOdeme()">Kaydet</button></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('m-odeme')">İptal</button><button class="btn primary" onclick="saveOdeme()">Kaydet</button></div>
   </div>
 </div>
 
@@ -405,7 +425,7 @@
           <div style="font-size:12px;color:var(--muted)" id="detay-sub"></div>
         </div>
       </div>
-      <button class="btn sm" onclick="closeModal(&#39;m-detay&#39;)">✕</button>
+      <button class="btn sm" onclick="closeModal('m-detay')">✕</button>
     </div>
 
     <input type="hidden" id="d2-id">
@@ -413,7 +433,7 @@
       <div class="form-group full"><label>Ad Soyad</label><input id="d2-ad" type="text" placeholder="Ad Soyad"></div>
       <div class="form-group"><label>Doğum Tarihi</label><input id="d2-dogum" type="date"></div>
       <div class="form-group"><label>Başlangıç Tarihi</label><input id="d2-baslangic" type="date"></div>
-      <div class="form-group"><label>Ödeme Günü (1-31)</label><input id="d2-odeme-gunu" type="number" min="1" max="31" placeholder="Boşsa başlangıç tarihi günü"></div>
+      <div class="form-group"><label>Ödeme Öteleme Tarihi</label><input id="d2-odeme-gunu" type="date" placeholder="Boşsa başlangıç tarihi baz alınır"></div>
       <div class="form-group"><label>Telefon</label><input id="d2-tel" type="tel" placeholder="05xx xxx xx xx"></div>
       <div class="form-group"><label>Aylık Ücret (₺)</label><input id="d2-ucret" type="number" placeholder="1500"></div>
       <div class="form-group"><label>Durum</label><select id="d2-durum"><option value="aktif">Aktif</option><option value="pasif">Pasif</option></select></div>
@@ -456,7 +476,7 @@
     </div>
 
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal(&#39;m-detay&#39;)">İptal</button>
+      <button class="btn" onclick="closeModal('m-detay')">İptal</button>
       <button class="btn primary" onclick="saveDetay()">Kaydet</button>
     </div>
   </div>
@@ -467,7 +487,7 @@
   <div class="modal" style="width:420px">
     <div class="modal-head">
       <span class="modal-title" id="m-ps-title">Sporcu Düzenle</span>
-      <button class="btn sm" onclick="closeModal(&#39;m-program-sporcu&#39;)">✕</button>
+      <button class="btn sm" onclick="closeModal('m-program-sporcu')">✕</button>
     </div>
     <input type="hidden" id="ps-id">
     <div class="form-grid">
@@ -519,8 +539,100 @@
 
     <div class="modal-footer">
       <button class="btn danger" onclick="programSporucuSil()" id="ps-sil-btn">Sil</button>
-      <button class="btn" onclick="closeModal(&#39;m-program-sporcu&#39;)">İptal</button>
+      <button class="btn" onclick="closeModal('m-program-sporcu')">İptal</button>
       <button class="btn primary" onclick="programSporucuKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Okuyucu Modal -->
+<div class="overlay" id="m-qr-okuyucu">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title">📷 QR Kod Okut</span>
+      <button class="btn sm" onclick="qrOkuyucuKapat()">✕</button>
+    </div>
+    <div style="position:relative;width:100%;background:#000;border-radius:var(--radius-sm);overflow:hidden;min-height:250px">
+      <video id="qr-video" style="width:100%;display:block" playsinline autoplay></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+      <div id="qr-overlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid #7F77DD;border-radius:8px;pointer-events:none;display:none"></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px">QR kodu kare içine getirin</div>
+    <div style="margin-top:8px;text-align:center">
+      <label class="btn sm" style="cursor:pointer">
+        📷 Fotoğraf Çekerek Okut
+        <input type="file" accept="image/*" capture="environment" id="qr-foto-input" style="display:none" onchange="qrFotoOku(this)">
+      </label>
+    </div>
+    <div id="qr-sonuc" style="margin-top:12px;display:none;padding:12px;background:var(--bg);border-radius:var(--radius-sm);text-align:center"></div>
+  </div>
+</div>
+
+<!-- QR Göster Modal -->
+<div class="overlay" id="m-qr-goster">
+  <div class="modal" style="width:320px;text-align:center">
+    <div class="modal-head">
+      <span class="modal-title" id="qr-goster-baslik">QR Kod</span>
+      <button class="btn sm" onclick="closeModal('m-qr-goster')">✕</button>
+    </div>
+    <div id="qr-goster-icerik" style="display:flex;justify-content:center;padding:16px"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Bu kodu yazdırıp ürüne yapıştırın</div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn primary" onclick="window.print()">🖨️ Yazdır</button>
+      <button class="btn" onclick="closeModal('m-qr-goster')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Varyant Modal -->
+<div class="overlay" id="m-varyant">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title" id="m-varyant-title">Varyant Ekle</span>
+      <button class="btn sm" onclick="closeModal('m-varyant')">✕</button>
+    </div>
+    <input type="hidden" id="var-id">
+    <input type="hidden" id="var-malzeme-id">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="var-malzeme-ad"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Marka / Model Adı</label><input id="var-marka" type="text" placeholder="örn: Win&Win, SF, Beiter"></div>
+      <div class="form-group"><label>Adet</label><input id="var-adet" type="number" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Fiyat (₺)</label><input id="var-fiyat" type="number" placeholder="0"></div>
+    </div>
+    <div id="var-bedenler-bolum" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">📏 Bedenler</div>
+      <div id="var-bedenler-listesi"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="var-yeni-beden" type="text" placeholder="Beden (S, M, L, XL...)" style="flex:1;padding:8px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text)">
+        <input id="var-yeni-beden-adet" type="number" placeholder="Adet" min="0" style="width:80px;padding:8px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text)">
+        <button class="btn sm primary" onclick="bedenEkle()">+ Ekle</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger" id="var-sil-btn" onclick="varyantSil()" style="display:none">Sil</button>
+      <button class="btn" onclick="closeModal('m-varyant')">İptal</button>
+      <button class="btn primary" onclick="varyantKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Malzeme Modal -->
+<div class="overlay" id="m-malzeme">
+  <div class="modal" style="width:380px">
+    <div class="modal-head">
+      <span class="modal-title" id="m-malzeme-title">Malzeme Ekle</span>
+      <button class="btn sm" onclick="closeModal('m-malzeme')">✕</button>
+    </div>
+    <input type="hidden" id="malz-id">
+    <div class="form-grid">
+      <div class="form-group full"><label>Malzeme Adı</label><input id="malz-ad" type="text" placeholder="Malzeme adı"></div>
+      <div class="form-group"><label>Adet</label><input id="malz-adet" type="number" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Fiyat (₺)</label><input id="malz-fiyat" type="number" placeholder="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger" id="malz-sil-btn" onclick="malzemeSil()" style="display:none">Sil</button>
+      <button class="btn" onclick="closeModal('m-malzeme')">İptal</button>
+      <button class="btn primary" onclick="malzemeKaydet()">Kaydet</button>
     </div>
   </div>
 </div>
@@ -530,7 +642,7 @@
   <div class="modal" style="width:380px">
     <div class="modal-head">
       <span class="modal-title">Ödeme Al</span>
-      <button class="btn sm" onclick="closeModal(&#39;m-odeme-al&#39;)">✕</button>
+      <button class="btn sm" onclick="closeModal('m-odeme-al')">✕</button>
     </div>
     <input type="hidden" id="oa-sporcu-id">
     <input type="hidden" id="oa-ay">
@@ -553,8 +665,22 @@
       </div>
     </div>
     <div id="oa-kalan-info" style="display:none;margin-top:10px;padding:8px 12px;background:#FAEEDA;border-radius:var(--radius-sm);font-size:12px;color:#854F0B"></div>
+    
+    <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="oa-ertelendi" onchange="odemeErtelen(this)">
+        <span>📅 Ödeme ertelendi (0 ₺ olarak kaydet)</span>
+      </label>
+      <div id="oa-ertelendi-tarih" style="display:none;margin-top:8px">
+        <div class="form-group">
+          <label>Erteleme Tarihi</label>
+          <input id="oa-ertelendi-tarih-input" type="date">
+        </div>
+      </div>
+    </div>
+
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal(&#39;m-odeme-al&#39;)">İptal</button>
+      <button class="btn" onclick="closeModal('m-odeme-al')">İptal</button>
       <button class="btn primary" onclick="odemeKaydet()">💰 Kaydet</button>
     </div>
   </div>
@@ -563,21 +689,21 @@
 <!-- Ders Modal -->
 <div class="overlay" id="m-ders">
   <div class="modal">
-    <div class="modal-head"><span class="modal-title" id="m-ders-title">Ders Saati Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-ders&#39;)">✕</button></div>
+    <div class="modal-head"><span class="modal-title" id="m-ders-title">Ders Saati Ekle</span><button class="btn sm" onclick="closeModal('m-ders')">✕</button></div>
     <input type="hidden" id="d-id">
     <div class="form-grid">
       <div class="form-group full"><label>Sporcu</label><select id="d-sporcu"></select></div>
       <div class="form-group"><label>Toplam Saat</label><input id="d-toplam" type="number" placeholder="20"></div>
       <div class="form-group"><label>Kullanılan Saat</label><input id="d-kullanilan" type="number" placeholder="0"></div>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-ders&#39;)">İptal</button><button class="btn primary" onclick="saveDers()">Kaydet</button></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('m-ders')">İptal</button><button class="btn primary" onclick="saveDers()">Kaydet</button></div>
   </div>
 </div>
 
 <!-- Gelir/Gider Modal -->
 <div class="overlay" id="m-gelir">
   <div class="modal">
-    <div class="modal-head"><span class="modal-title" id="m-gelir-title">Kayıt Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-gelir&#39;)">✕</button></div>
+    <div class="modal-head"><span class="modal-title" id="m-gelir-title">Kayıt Ekle</span><button class="btn sm" onclick="closeModal('m-gelir')">✕</button></div>
     <input type="hidden" id="g-id">
     <div class="form-grid">
       <div class="form-group"><label>Tarih</label><input id="g-tarih" type="date"></div>
@@ -602,14 +728,14 @@
       </select></div>
       <div class="form-group"><label>Tutar (₺)</label><input id="g-tutar" type="number" placeholder="0"></div>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-gelir&#39;)">İptal</button><button class="btn primary" onclick="saveGelir()">Kaydet</button></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('m-gelir')">İptal</button><button class="btn primary" onclick="saveGelir()">Kaydet</button></div>
   </div>
 </div>
 
 <!-- Ekipman Modal -->
 <div class="overlay" id="m-ekipman">
   <div class="modal">
-    <div class="modal-head"><span class="modal-title" id="m-ekipman-title">Ekipman Ekle</span><button class="btn sm" onclick="closeModal(&#39;m-ekipman&#39;)">✕</button></div>
+    <div class="modal-head"><span class="modal-title" id="m-ekipman-title">Ekipman Ekle</span><button class="btn sm" onclick="closeModal('m-ekipman')">✕</button></div>
     <input type="hidden" id="e-id">
     <div class="form-grid">
       <div class="form-group full"><label>Ekipman Adı</label><input id="e-ad" type="text" placeholder="Ekipman adı"></div>
@@ -618,7 +744,7 @@
       <div class="form-group"><label>Alım Tarihi</label><input id="e-tarih" type="date"></div>
       <div class="form-group full"><label>Durum</label><select id="e-durum"><option value="iyi">İyi</option><option value="yipraniyor">Yıpranıyor</option><option value="bozuk">Bozuk</option></select></div>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal(&#39;m-ekipman&#39;)">İptal</button><button class="btn primary" onclick="saveEkipman()">Kaydet</button></div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('m-ekipman')">İptal</button><button class="btn primary" onclick="saveEkipman()">Kaydet</button></div>
   </div>
 </div>
 
@@ -712,6 +838,9 @@ function toggleOdeme(sporcuId, mevcutDurum, ay) {
   document.getElementById('oa-tutar').value = beklenenTutar || '';
   document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
   document.getElementById('oa-kalan-info').style.display = 'none';
+  document.getElementById('oa-ertelendi').checked = false;
+  document.getElementById('oa-tutar').disabled = false;
+  document.getElementById('oa-ertelendi-tarih').style.display = 'none';
   openModal('m-odeme-al');
 
   // Tutar değişince kalan borcu göster
@@ -733,19 +862,43 @@ function toggleOdeme(sporcuId, mevcutDurum, ay) {
   };
 }
 
+function odemeErtelen(cb) {
+  const tutarInput = document.getElementById('oa-tutar');
+  const tarihDiv = document.getElementById('oa-ertelendi-tarih');
+  const kalanInfo = document.getElementById('oa-kalan-info');
+  if (cb.checked) {
+    tutarInput.value = '0';
+    tutarInput.disabled = true;
+    tarihDiv.style.display = 'block';
+    kalanInfo.style.display = 'none';
+  } else {
+    tutarInput.disabled = false;
+    tarihDiv.style.display = 'none';
+  }
+}
+
 async function odemeKaydet() {
   const sporcuId = document.getElementById('oa-sporcu-id').value;
   const ay = document.getElementById('oa-ay').value;
-  const tutar = parseFloat(document.getElementById('oa-tutar').value) || 0;
+  const ertelendi = document.getElementById('oa-ertelendi').checked;
+  const tutar = ertelendi ? 0 : (parseFloat(document.getElementById('oa-tutar').value) || 0);
   const tarih = document.getElementById('oa-tarih').value;
-  if (!tutar) { toast('Tutar giriniz', true); return; }
+  
+  if (!ertelendi && !tutar && tutar !== 0) { toast('Tutar giriniz', true); return; }
+
+  const kayit = { 
+    sporcu_id: sporcuId, 
+    ay, 
+    odendi: true, 
+    tutar, 
+    odeme_tarihi: tarih,
+    notlar: ertelendi ? ('Ertelendi' + (document.getElementById('oa-ertelendi-tarih-input').value ? ' → ' + document.getElementById('oa-ertelendi-tarih-input').value : '')) : null
+  };
+
   try {
-    await db('aylik_odeme_durum', 'POST',
-      { sporcu_id: sporcuId, ay, odendi: true, tutar, odeme_tarihi: tarih },
-      '?on_conflict=sporcu_id,ay'
-    );
+    await db('aylik_odeme_durum', 'POST', kayit, '?on_conflict=sporcu_id,ay');
     closeModal('m-odeme-al');
-    toast('✓ Ödeme kaydedildi');
+    toast(ertelendi ? '📅 Ödeme ertelendi olarak kaydedildi' : '✓ Ödeme kaydedildi');
     loadSporcular();
   } catch(e) {
     try {
@@ -754,7 +907,7 @@ async function odemeKaydet() {
         `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`
       );
       closeModal('m-odeme-al');
-      toast('✓ Ödeme kaydedildi');
+      toast(ertelendi ? '📅 Ödeme ertelendi olarak kaydedildi' : '✓ Ödeme kaydedildi');
       loadSporcular();
     } catch(e2) { toast('Hata: ' + e2.message, true); }
   }
@@ -791,9 +944,9 @@ function fmtMoney(n) {
 function toast(msg, err=false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.style.background = err ? '#E24B4A' : '#1a1916';
+  t.style.background = err ? '#E24B4A' : '#1D9E75';
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -1076,6 +1229,21 @@ async function loadDashboard() {
         </div>`;
     }).join('');
 
+    // Malzeme uyarısı kontrol et
+    try {
+      const malzemeler = await db('malzemeler', 'GET', null, '?adet=lte.1&select=ad,adet');
+      if (malzemeler.length > 0) {
+        const eskiKartlar = document.getElementById('malzeme-uyari');
+        if (eskiKartlar) eskiKartlar.remove();
+        const uyariDiv = document.createElement('div');
+        uyariDiv.id = 'malzeme-uyari';
+        uyariDiv.style.cssText = 'background:#FCEBEB;border:1px solid #FFCCCC;border-radius:var(--radius);padding:12px 16px;margin-bottom:12px';
+        uyariDiv.innerHTML = `<div style="font-size:12px;font-weight:600;color:#A32D2D;margin-bottom:6px">⚠️ Az Kalan Malzemeler</div>
+          ${malzemeler.map(m => `<div style="font-size:12px;color:#A32D2D">• ${m.ad}: ${m.adet} adet kaldı</div>`).join('')}`;
+        document.getElementById('yil-kartlari').before(uyariDiv);
+      }
+    } catch(e) {}
+
     document.getElementById('dash-stats').innerHTML = `
       <div class="stat"><div class="stat-label">Aktif Sporcu</div><div class="stat-val purple">${sporcular.length}</div></div>
     `;
@@ -1105,7 +1273,8 @@ async function loadDashboard() {
 function sporcuRow(s, odendi, ay) {
   const odendiVal = odendi && typeof odendi === 'object' ? odendi.odendi : odendi;
   const tutarVal = odendi && typeof odendi === 'object' ? odendi.tutar : null;
-  const rowStyle = odendiVal ? 'background:#E1F5EE;' : '';
+  const gectiVal = odendi && typeof odendi === 'object' ? odendi.gecti : false;
+  const rowStyle = odendiVal ? 'background:#E1F5EE;' : (gectiVal ? 'background:#FFF0F0;' : '');
   const odemeBtn = s.durum === 'aktif' ? `
     <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}')">
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
@@ -1165,6 +1334,11 @@ async function loadSporcular() {
     const tbody = document.getElementById('sporcu-tbody');
     const aktifler = data.filter(s => {
       if (s.durum !== 'aktif') return false;
+      // Öteleme tarihi varsa o aydan önce gösterme
+      if (s.oteleme_tarihi) {
+        const otelemeAy = s.oteleme_tarihi.slice(0, 7);
+        if (hedefAy < otelemeAy) return false;
+      }
       if (!s.baslangic_tarihi) return true;
       return s.baslangic_tarihi.slice(0,7) <= hedefAy;
     });
@@ -1197,12 +1371,34 @@ async function loadSporcular() {
       });
     }
 
-    // Hedef ay sporcuları
-    const odenmemis = aktifler.filter(s => !odemeCache[s.id] || !odemeCache[s.id].odendi);
+    // Bugünün gününü al
+    const bugun = new Date();
+    const hedefAyNo = parseInt(hedefAy.split('-')[1]);
+    const hedefYilNo = parseInt(hedefAy.split('-')[0]);
+    const gercekBuAyStr = bugun.toISOString().slice(0,7);
+
+    // Ödeme günü geçmiş mi kontrol et
+    function odemeGunuGectiMi(s) {
+      // Geçmiş ay - hepsi geçmiş say
+      if (hedefAy < gercekBuAyStr) return true;
+      // Gelecek ay - hiçbiri geçmemiş say
+      if (hedefAy > gercekBuAyStr) return false;
+      // Bu ay - gerçek gün kontrolü
+      const gun = s.oteleme_tarihi ? new Date(s.oteleme_tarihi).getDate() : (s.odeme_gunu || (s.baslangic_tarihi ? new Date(s.baslangic_tarihi).getDate() : 1));
+      const odemeGunuTarihi = new Date(hedefYilNo, hedefAyNo - 1, gun);
+      return bugun > odemeGunuTarihi;
+    }
+
+    // Ödenmemiş - günü geçmiş (kırmızı, üstte)
+    const gecmisOdenmemis = aktifler.filter(s => (!odemeCache[s.id] || !odemeCache[s.id].odendi) && odemeGunuGectiMi(s));
+    // Ödenmemiş - günü gelmemiş (normal, ortada)
+    const bekleyenOdenmemis = aktifler.filter(s => (!odemeCache[s.id] || !odemeCache[s.id].odendi) && !odemeGunuGectiMi(s));
+    // Ödenmiş (yeşil, altta)
     const odenmis = aktifler.filter(s => odemeCache[s.id] && odemeCache[s.id].odendi);
 
     html += `<tr style="background:var(--accent-light)"><td colspan="10" style="font-weight:600;font-size:12px;color:var(--accent-dark);padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">🟢 ${ayBaslikStr(hedefAy)} — Aktif Sporcular (${aktifler.length})</td></tr>`;
-    if (odenmemis.length) html += odenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar }, hedefAy)).join('');
+    if (gecmisOdenmemis.length) html += gecmisOdenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar, gecti: true }, hedefAy)).join('');
+    if (bekleyenOdenmemis.length) html += bekleyenOdenmemis.map(s => sporcuRow(s, { odendi: false, tutar: odemeCache[s.id]?.tutar, gecti: false }, hedefAy)).join('');
     if (odenmis.length) html += odenmis.map(s => sporcuRow(s, odemeCache[s.id], hedefAy)).join('');
     if (!aktifler.length) html += '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted)">Bu ayda aktif sporcu yok</td></tr>';
 
@@ -1214,7 +1410,17 @@ async function toggleDurum(id, mevcutDurum) {
   const yeniDurum = mevcutDurum === 'aktif' ? 'pasif' : 'aktif';
   try {
     await db('sporcular', 'PATCH', { durum: yeniDurum }, `?id=eq.${id}`);
-    toast(yeniDurum === 'aktif' ? 'Sporcu aktif yapıldı' : 'Sporcu pasif yapıldı');
+    // Pasif yapılınca ders programından da çıkar
+    if (yeniDurum === 'pasif') {
+      const s = sporcularCache.find(x => x.id === id);
+      if (s) {
+        await db('ders_programi', 'DELETE', null, `?sporcu_adi=eq.${encodeURIComponent(s.ad_soyad)}`);
+        programCache = [];
+      }
+      toast('Sporcu pasif yapıldı — ders programından çıkarıldı');
+    } else {
+      toast('Sporcu aktif yapıldı');
+    }
     loadSporcular();
   } catch(e) { toast('Güncelleme hatası', true); }
 }
@@ -1292,7 +1498,8 @@ function detaySporcu(id) {
   document.getElementById('d2-ad').value = s.ad_soyad || '';
   document.getElementById('d2-dogum').value = s.dogum_tarihi || '';
   document.getElementById('d2-baslangic').value = s.baslangic_tarihi || '';
-  document.getElementById('d2-odeme-gunu').value = s.odeme_gunu || '';
+  // Öteleme tarihini göster
+  document.getElementById('d2-odeme-gunu').value = s.oteleme_tarihi || '';
   document.getElementById('d2-tel').value = s.telefon || '';
   document.getElementById('d2-ucret').value = s.aylik_ucret || '';
   document.getElementById('d2-durum').value = s.durum || 'aktif';
@@ -1357,7 +1564,12 @@ async function saveDetay() {
     veli_telefonu: document.getElementById('d2-veli-tel').value || null,
     veli_meslegi: document.getElementById('d2-veli-meslek').value || null,
     atanan_yay: document.getElementById('d2-atanan-yay').value || null,
-    odeme_gunu: parseInt(document.getElementById('d2-odeme-gunu').value) || null,
+    odeme_gunu: (() => {
+      const val = document.getElementById('d2-odeme-gunu').value;
+      if (!val) return null;
+      return new Date(val).getDate();
+    })(),
+    oteleme_tarihi: document.getElementById('d2-odeme-gunu').value || null,
     notlar: document.getElementById('d2-notlar').value || null,
     ekipmanlar,
   };
@@ -1611,7 +1823,10 @@ async function setYoklama(dersProgramiId, durum, tarih, btn) {
   renderProgram();
 }
 
-let aktifGun = 'Salı';
+const gunler = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const bugunAdi = gunler[new Date().getDay()];
+const dersProgramiGunler = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+let aktifGun = dersProgramiGunler.includes(bugunAdi) ? bugunAdi : 'Salı';
 
 async function loadProgram() {
   try {
@@ -1887,7 +2102,8 @@ async function programSporucuSil() {
 // GELİR GİDER
 async function loadGelir() {
   try {
-    const data = await db('gelir_gider', 'GET', null, '?select=*&order=tarih.desc');
+    const bugun = new Date().toISOString().split('T')[0];
+    const data = await db('gelir_gider', 'GET', null, `?select=*&tarih=lte.${bugun}&order=tarih.desc`);
     const totalGelir = data.filter(g => g.tur === 'gelir').reduce((a, b) => a + Number(b.tutar), 0);
     const totalGider = data.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
     const kar = totalGelir - totalGider;
@@ -1955,9 +2171,489 @@ async function deleteGelir(id) {
   loadGelir();
 }
 
+function toggleYayEnvanteri() {
+  const panel = document.getElementById('yay-envanter-panel');
+  const icon = document.getElementById('yay-envanter-icon');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    icon.textContent = '▲ Gizle';
+    // Henüz yüklenmemişse yükle
+    if (!document.querySelector('#yay-envanter-tablo table')) {
+      loadEkipman();
+    }
+  } else {
+    panel.style.display = 'none';
+    icon.textContent = '▼ Göster';
+  }
+}
+
+// MALZEMELER
+async function loadMalzemeler() {
+  try {
+    const data = await db('malzemeler', 'GET', null, '?select=*&order=ad.asc');
+    const tbody = document.getElementById('malzeme-tbody');
+    if (!data.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Malzeme kaydı yok</td></tr>';
+      return;
+    }
+    // Her malzemenin QR kodunu güncelle (link formatında)
+    for (const m of data) {
+      const qrData = `https://okculuksalonu.github.io/okculuk-salonu?malzeme=${m.id}`;
+      if (m.qr_kod !== qrData) {
+        try {
+          await db('malzemeler', 'PATCH', { qr_kod: qrData }, `?id=eq.${m.id}`);
+        } catch(e) { /* qr güncelleme hatası görmezden gel */ }
+        m.qr_kod = qrData;
+      }
+    }
+
+    // Varyantları ve bedenleri yükle
+    const [varyantlar, bedenler] = await Promise.all([
+      db('malzeme_varyantlar', 'GET', null, '?select=*&order=marka.asc').catch(() => []),
+      db('varyant_bedenler', 'GET', null, '?select=*').catch(() => [])
+    ]);
+    // Beden toplamlarını varyant adetlerine yaz
+    const bedenByVaryant = {};
+    bedenler.forEach(b => {
+      if (!bedenByVaryant[b.varyant_id]) bedenByVaryant[b.varyant_id] = [];
+      bedenByVaryant[b.varyant_id].push(b);
+    });
+    const varyantMap = {};
+    varyantlar.forEach(v => {
+      if (!varyantMap[v.malzeme_id]) varyantMap[v.malzeme_id] = [];
+      varyantMap[v.malzeme_id].push(v);
+    });
+
+    tbody.innerHTML = data.map(m => {
+      const mvaryantlar = varyantMap[m.id] || [];
+      const toplamAdet = mvaryantlar.reduce((a,b) => a + b.adet, 0);
+      const azUyari = toplamAdet <= 1 && mvaryantlar.length > 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : 
+                      m.adet <= 1 && mvaryantlar.length === 0 ? '<span style="font-size:10px;background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:10px;margin-left:6px">⚠️ Az</span>' : '';
+      
+      const varyantRows = mvaryantlar.map(v => {
+        const qrUrl = v.qr_kod || `https://okculuksalonu.github.io/okculuk-salonu?varyant=${v.id}`;
+        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(qrUrl)}&margin=4`;
+        const vBedenler = bedenByVaryant[v.id] || [];
+        const bedenSatirlar = vBedenler.map(b => `
+          <tr style="background:#F5F5F5">
+            <td style="padding-left:40px;font-size:11px;color:var(--muted)">↳ ${b.beden}</td>
+            <td style="font-size:11px">${b.adet}</td>
+            <td colspan="2"></td>
+          </tr>`).join('');
+        return `<tr style="background:#FAFAF8">
+          <td style="padding-left:24px;font-size:12px;color:var(--muted)">↳ ${v.marka}</td>
+          <td style="font-size:12px">${v.adet}</td>
+          <td style="font-size:12px">${v.fiyat ? v.fiyat.toLocaleString('tr-TR') + ' ₺' : '-'}</td>
+          <td style="white-space:nowrap;display:flex;align-items:center;gap:8px">
+            <img src="${qrImg}" style="width:40px;height:40px;cursor:pointer;border-radius:4px" onclick="varyantQrGoster('${v.id}','${v.marka}','${m.ad}',this.src.replace('80x80','200x200'))" title="QR Göster">
+            <button class="btn sm" onclick="varyantDuzenle('${v.id}','${m.id}')">Düzenle</button>
+          </td>
+        </tr>${bedenSatirlar}`;
+      }).join('');
+
+      return `<tr>
+        <td style="font-weight:500">${m.ad}${azUyari}</td>
+        <td style="font-weight:600;color:${(toplamAdet <= 1 && mvaryantlar.length > 0) || (m.adet <= 1 && mvaryantlar.length === 0) ? 'var(--red)' : 'var(--text)'}">${mvaryantlar.length > 0 ? toplamAdet + ' (toplam)' : m.adet}</td>
+        <td>${mvaryantlar.length > 0 ? '<span style="font-size:11px;color:var(--muted)">Varyantlara göre</span>' : (m.fiyat ? m.fiyat.toLocaleString('tr-TR') + ' ₺' : '-')}</td>
+        <td style="white-space:nowrap">
+          <button class="btn sm" onclick="qrGoster('${m.id}','${m.ad.replace(/'/g,'\'')}','${m.qr_kod||''}')">🔲 QR</button>
+          <button class="btn sm primary" onclick="varyantEkle('${m.id}','${m.ad.replace(/'/g,'\'')}')">+ Varyant</button>
+          <button class="btn sm" onclick="malzemeDuzenle('${m.id}')">Düzenle</button>
+        </td>
+      </tr>${varyantRows}`;
+    }).join('');
+  } catch(e) { toast('Malzeme yükleme hatası', true); }
+}
+
+function malzemeEkle() {
+  document.getElementById('m-malzeme-title').textContent = 'Malzeme Ekle';
+  document.getElementById('malz-id').value = '';
+  document.getElementById('malz-ad').value = '';
+  document.getElementById('malz-adet').value = '0';
+  document.getElementById('malz-fiyat').value = '';
+  document.getElementById('malz-sil-btn').style.display = 'none';
+  openModal('m-malzeme');
+}
+
+function malzemeDuzenle(id) {
+  db('malzemeler', 'GET', null, `?id=eq.${id}&select=*`).then(data => {
+    if (!data.length) return;
+    const m = data[0];
+    document.getElementById('m-malzeme-title').textContent = 'Malzeme Düzenle';
+    document.getElementById('malz-id').value = m.id;
+    document.getElementById('malz-ad').value = m.ad;
+    document.getElementById('malz-adet').value = m.adet;
+    document.getElementById('malz-fiyat').value = m.fiyat || '';
+    document.getElementById('malz-sil-btn').style.display = 'inline-flex';
+    openModal('m-malzeme');
+  });
+}
+
+async function malzemeKaydet() {
+  const id = document.getElementById('malz-id').value;
+  const body = {
+    ad: document.getElementById('malz-ad').value.trim(),
+    adet: parseInt(document.getElementById('malz-adet').value) || 0,
+    fiyat: parseFloat(document.getElementById('malz-fiyat').value) || 0,
+  };
+  if (!body.ad) { toast('Malzeme adı zorunlu', true); return; }
+  try {
+    if (id) await db('malzemeler', 'PATCH', body, `?id=eq.${id}`);
+    else await db('malzemeler', 'POST', body);
+    closeModal('m-malzeme');
+    toast('Kaydedildi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+async function malzemeSil() {
+  const id = document.getElementById('malz-id').value;
+  if (!id || !confirm('Bu malzemeyi silmek istiyor musunuz?')) return;
+  try {
+    await db('malzemeler', 'DELETE', null, `?id=eq.${id}`);
+    closeModal('m-malzeme');
+    toast('Silindi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata', true); }
+}
+
+// VARYANT FONKSİYONLARI
+function varyantEkle(malzemeId, malzemeAd) {
+  document.getElementById('m-varyant-title').textContent = 'Varyant Ekle';
+  document.getElementById('var-id').value = '';
+  document.getElementById('var-malzeme-id').value = malzemeId;
+  document.getElementById('var-malzeme-ad').textContent = malzemeAd;
+  document.getElementById('var-marka').value = '';
+  document.getElementById('var-adet').value = '0';
+  document.getElementById('var-fiyat').value = '';
+  document.getElementById('var-sil-btn').style.display = 'none';
+  document.getElementById('var-bedenler-bolum').style.display = 'none';
+  document.getElementById('var-bedenler-listesi').innerHTML = '';
+  openModal('m-varyant');
+}
+
+async function varyantDuzenle(varyantId, malzemeId) {
+  const [data, malzData, bedenData] = await Promise.all([
+    db('malzeme_varyantlar', 'GET', null, `?id=eq.${varyantId}&select=*`),
+    db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=ad`),
+    db('varyant_bedenler', 'GET', null, `?varyant_id=eq.${varyantId}&select=*&order=beden.asc`)
+  ]);
+  if (!data.length) return;
+  const v = data[0];
+  document.getElementById('m-varyant-title').textContent = 'Varyant Düzenle';
+  document.getElementById('var-id').value = v.id;
+  document.getElementById('var-malzeme-id').value = malzemeId;
+  document.getElementById('var-malzeme-ad').textContent = malzData[0]?.ad || '';
+  document.getElementById('var-marka').value = v.marka;
+  document.getElementById('var-adet').value = v.adet;
+  document.getElementById('var-fiyat').value = v.fiyat || '';
+  document.getElementById('var-sil-btn').style.display = 'inline-flex';
+
+  // Bedenler bölümünü göster
+  document.getElementById('var-bedenler-bolum').style.display = 'block';
+  renderBedenListesi(bedenData, varyantId);
+  openModal('m-varyant');
+}
+
+function renderBedenListesi(bedenler, varyantId) {
+  const liste = document.getElementById('var-bedenler-listesi');
+  if (!bedenler.length) { liste.innerHTML = '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Henüz beden eklenmedi</div>'; return; }
+  liste.innerHTML = bedenler.map(b => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font-size:13px;font-weight:500;min-width:50px">${b.beden}</span>
+      <input type="number" value="${b.adet}" min="0" style="width:70px;padding:6px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text)" onchange="bedenAdetGuncelle('${b.id}', this.value)">
+      <span style="font-size:12px;color:var(--muted)">adet</span>
+      <button class="btn sm danger" onclick="bedenSil('${b.id}','${varyantId}')">Sil</button>
+    </div>`).join('');
+}
+
+async function bedenEkle() {
+  const varyantId = document.getElementById('var-id').value;
+  if (!varyantId) { toast('Önce varyantı kaydedin', true); return; }
+  const beden = document.getElementById('var-yeni-beden').value.trim();
+  const adet = parseInt(document.getElementById('var-yeni-beden-adet').value) || 0;
+  if (!beden) { toast('Beden adı giriniz', true); return; }
+  try {
+    await db('varyant_bedenler', 'POST', { varyant_id: varyantId, beden, adet });
+    document.getElementById('var-yeni-beden').value = '';
+    document.getElementById('var-yeni-beden-adet').value = '';
+    // Listeyi güncelle
+    const bedenData = await db('varyant_bedenler', 'GET', null, `?varyant_id=eq.${varyantId}&select=*&order=beden.asc`);
+    renderBedenListesi(bedenData, varyantId);
+    // Varyant adetini güncelle
+    await bedenToplamGuncelle(varyantId, bedenData);
+    toast('Beden eklendi');
+  } catch(e) { toast('Hata', true); }
+}
+
+async function bedenAdetGuncelle(bedenId, yeniAdet) {
+  const varyantId = document.getElementById('var-id').value;
+  await db('varyant_bedenler', 'PATCH', { adet: parseInt(yeniAdet) || 0 }, `?id=eq.${bedenId}`);
+  const bedenData = await db('varyant_bedenler', 'GET', null, `?varyant_id=eq.${varyantId}&select=*`);
+  await bedenToplamGuncelle(varyantId, bedenData);
+}
+
+async function bedenSil(bedenId, varyantId) {
+  await db('varyant_bedenler', 'DELETE', null, `?id=eq.${bedenId}`);
+  const bedenData = await db('varyant_bedenler', 'GET', null, `?varyant_id=eq.${varyantId}&select=*&order=beden.asc`);
+  renderBedenListesi(bedenData, varyantId);
+  await bedenToplamGuncelle(varyantId, bedenData);
+  toast('Silindi');
+}
+
+async function bedenToplamGuncelle(varyantId, bedenler) {
+  const toplam = bedenler.reduce((a, b) => a + (b.adet || 0), 0);
+  await db('malzeme_varyantlar', 'PATCH', { adet: toplam }, `?id=eq.${varyantId}`);
+}
+
+async function varyantKaydet() {
+  const id = document.getElementById('var-id').value;
+  const body = {
+    malzeme_id: document.getElementById('var-malzeme-id').value,
+    marka: document.getElementById('var-marka').value.trim(),
+    adet: parseInt(document.getElementById('var-adet').value) || 0,
+    fiyat: parseFloat(document.getElementById('var-fiyat').value) || 0,
+  };
+  if (!body.marka) { toast('Marka adı zorunlu', true); return; }
+  try {
+    let varyantId = id;
+    if (id) {
+      await db('malzeme_varyantlar', 'PATCH', body, `?id=eq.${id}`);
+    } else {
+      const result = await db('malzeme_varyantlar', 'POST', body);
+      if (result && result[0]) varyantId = result[0].id;
+    }
+    // QR kod URL'si oluştur ve kaydet
+    if (varyantId) {
+      const qrData = `https://okculuksalonu.github.io/okculuk-salonu?varyant=${varyantId}`;
+      await db('malzeme_varyantlar', 'PATCH', { qr_kod: qrData }, `?id=eq.${varyantId}`);
+    }
+    closeModal('m-varyant');
+    toast('Kaydedildi');
+    loadMalzemeler();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+async function varyantSil() {
+  const id = document.getElementById('var-id').value;
+  if (!id || !confirm('Bu varyantı silmek istiyor musunuz?')) return;
+  await db('malzeme_varyantlar', 'DELETE', null, `?id=eq.${id}`);
+  closeModal('m-varyant');
+  toast('Silindi');
+  loadMalzemeler();
+}
+
+// QR KOD
+let qrScanner = null;
+
+function qrGoster(id, ad, qrData) {
+  document.getElementById('qr-goster-baslik').textContent = ad;
+  const icerik = document.getElementById('qr-goster-icerik');
+  icerik.innerHTML = '';
+  
+  // QR kodu Google Charts API ile oluştur
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=1a1916&margin=10`;
+  const img = document.createElement('img');
+  img.src = qrUrl;
+  img.style.cssText = 'width:200px;height:200px;border-radius:8px';
+  img.alt = ad;
+  icerik.appendChild(img);
+  openModal('m-qr-goster');
+}
+
+let qrScanInterval = null;
+
+function qrOkuyucuAc() {
+  openModal('m-qr-okuyucu');
+  const sonuc = document.getElementById('qr-sonuc');
+  sonuc.style.display = 'none';
+  sonuc.innerHTML = '';
+
+  const video = document.getElementById('qr-video');
+  const canvas = document.getElementById('qr-canvas');
+
+  navigator.mediaDevices.getUserMedia({ 
+    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+  }).then(stream => {
+    video.srcObject = stream;
+    qrScanner = stream;
+    video.play();
+
+    // jsQR kütüphanesi ile QR tara
+    qrScanInterval = setInterval(() => {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = typeof jsQR !== "undefined" ? jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" }) : null;
+        if (code) {
+          clearInterval(qrScanInterval);
+          qrScanInterval = null;
+          qrOkuyucuKapat();
+          qrIsle(code.data);
+        }
+      }
+    }, 200);
+  }).catch(e => {
+    sonuc.style.display = 'block';
+    sonuc.innerHTML = `<div style="color:var(--red)">⚠️ Kamera açılamadı: ${e.message}</div>`;
+  });
+}
+
+async function qrFotoOku(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const sonuc = document.getElementById('qr-sonuc');
+  sonuc.style.display = 'block';
+  sonuc.innerHTML = '<div class="loading"><div class="spinner"></div> Okunuyor...</div>';
+  
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('qr-canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = typeof jsQR !== "undefined" ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+    if (code) {
+      qrIsle(code.data);
+    } else {
+      sonuc.innerHTML = '<div style="color:var(--red)">QR kod okunamadı, tekrar deneyin</div>';
+    }
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function qrOkuyucuKapat() {
+  if (qrScanInterval) { clearInterval(qrScanInterval); qrScanInterval = null; }
+  if (qrScanner) {
+    qrScanner.getTracks().forEach(t => t.stop());
+    qrScanner = null;
+  }
+  const video = document.getElementById('qr-video');
+  if (video) video.srcObject = null;
+  closeModal('m-qr-okuyucu');
+}
+
+async function qrIsle(kod) {
+  const sonuc = document.getElementById('qr-sonuc');
+  sonuc.style.display = 'block';
+
+  // Format: MALZEME:ID:AD
+  if (!kod.startsWith('MALZEME:')) {
+    sonuc.innerHTML = '<div style="color:var(--red)">⚠️ Geçersiz QR kod</div>';
+    return;
+  }
+
+  const parts = kod.split(':');
+  const malzemeId = parts[1];
+  const malzemeAd = parts.slice(2).join(':');
+
+  try {
+    const [malzData, varyantData] = await Promise.all([
+      db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`),
+      db('malzeme_varyantlar', 'GET', null, `?malzeme_id=eq.${malzemeId}&select=*&order=marka.asc`)
+    ]);
+    if (!malzData.length) { sonuc.innerHTML = '<div style="color:var(--red)">Malzeme bulunamadı</div>'; return; }
+    const m = malzData[0];
+
+    if (varyantData.length > 0) {
+      // Varyant seçimi göster
+      const varyantBtns = varyantData.map(v => `
+        <button class="btn" onclick="varyantSat('${v.id}','${v.marka}',${v.adet},${v.fiyat||0},'${m.ad}')" 
+          style="width:100%;justify-content:space-between;margin-bottom:6px;${v.adet===0?'opacity:.4;pointer-events:none':''}">
+          <span>${v.marka} ${v.adet===0?'(Tükendi)':''}</span>
+          <span>${v.adet} adet · ${v.fiyat?v.fiyat.toLocaleString('tr-TR')+' ₺':'-'}</span>
+        </button>`).join('');
+      sonuc.innerHTML = `
+        <div style="font-size:14px;font-weight:600;margin-bottom:12px">📦 ${m.ad} — Hangi marka?</div>
+        ${varyantBtns}
+        <button class="btn" onclick="qrOkuyucuKapat()" style="width:100%;margin-top:4px">İptal</button>`;
+    } else {
+      sonuc.innerHTML = `
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px">📦 ${m.ad}</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button class="btn danger" onclick="malzemeAdetDus('${m.id}','${m.ad}',${m.adet},${m.fiyat||0})">
+            − 1 Adet Düş (Sat)
+          </button>
+          <button class="btn" onclick="qrOkuyucuKapat()">İptal</button>
+        </div>`;
+    }
+  } catch(e) {
+    sonuc.innerHTML = '<div style="color:var(--red)">Hata: ' + e.message + '</div>';
+  }
+}
+
+function varyantQrGoster(id, marka, malzemeAd, qrSrc) {
+  document.getElementById('qr-goster-baslik').textContent = `${malzemeAd} — ${marka}`;
+  const icerik = document.getElementById('qr-goster-icerik');
+  icerik.innerHTML = `<img src="${qrSrc}" style="width:200px;height:200px;border-radius:8px">`;
+  openModal('m-qr-goster');
+}
+
+async function varyantSatOverlay(varyantId, marka, mevcutAdet, fiyat, malzemeAd) {
+  if (window._qrOverlay) window._qrOverlay.remove();
+  if (mevcutAdet <= 0) { toast('Stok tükendi!', true); return; }
+  await db('malzeme_varyantlar', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${varyantId}`);
+  if (fiyat > 0) {
+    const bugun = new Date().toISOString().split('T')[0];
+    await db('gelir_gider', 'POST', { tarih: bugun, aciklama: `${malzemeAd} - ${marka} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: fiyat });
+  }
+  toast(`✓ ${marka} satıldı! ${fiyat > 0 ? fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+}
+
+async function varyantSat(varyantId, marka, mevcutAdet, fiyat, malzemeAd) {
+  if (mevcutAdet <= 0) { toast('Stok tükendi!', true); return; }
+  try {
+    await db('malzeme_varyantlar', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${varyantId}`);
+    if (fiyat > 0) {
+      const bugun = new Date().toISOString().split('T')[0];
+      await db('gelir_gider', 'POST', {
+        tarih: bugun,
+        aciklama: `${malzemeAd} - ${marka} satışı`,
+        kategori: 'malzeme_satis',
+        tur: 'gelir',
+        tutar: fiyat
+      });
+    }
+    toast(`✓ ${marka} satıldı! ${fiyat > 0 ? fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+    qrOkuyucuKapat();
+    loadMalzemeler();
+  } catch(e) { toast('Hata', true); }
+}
+
+async function malzemeAdetDus(id, ad, mevcutAdet, fiyat) {
+  if (mevcutAdet <= 0) {
+    toast('Stok zaten 0!', true);
+    return;
+  }
+  try {
+    await db('malzemeler', 'PATCH', { adet: mevcutAdet - 1 }, `?id=eq.${id}`);
+    // Fiyat varsa gelir olarak ekle
+    if (fiyat && fiyat > 0) {
+      const bugun = new Date().toISOString().split('T')[0];
+      await db('gelir_gider', 'POST', {
+        tarih: bugun,
+        aciklama: `${ad} satışı`,
+        kategori: 'malzeme_satis',
+        tur: 'gelir',
+        tutar: fiyat
+      });
+    }
+    toast(`✓ ${ad} satıldı! ${fiyat > 0 ? fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''} (Kalan: ${mevcutAdet - 1})`);
+    qrOkuyucuKapat();
+    loadMalzemeler();
+  } catch(e) { toast('Hata', true); }
+}
+
 // EKİPMAN
 async function loadEkipman() {
   try {
+    loadMalzemeler();
     const [data, yaylar] = await Promise.all([
       db('ekipmanlar', 'GET', null, '?select=*&order=olusturma_tarihi.desc'),
       db('yay_envanteri', 'GET', null, '?select=*&order=libre.asc')
@@ -2042,6 +2738,11 @@ async function doLogin() {
   const errEl = document.getElementById('login-err');
   const btn = document.querySelector('.login-btn');
   if (!p) { errEl.textContent = 'Şifre giriniz.'; return; }
+
+  // URL'deki malzeme parametresini kaydet
+  const params = new URLSearchParams(window.location.search);
+  const malzemeId = params.get('malzeme');
+  if (malzemeId) localStorage.setItem('bekleyen_malzeme', malzemeId);
   
   btn.textContent = 'Giriş yapılıyor...';
   btn.disabled = true;
@@ -2064,6 +2765,8 @@ async function doLogin() {
     if (data.access_token) {
       localStorage.setItem('auth', 'ok');
       localStorage.setItem('token', data.access_token);
+      localStorage.setItem('son_aktivite', Date.now());
+      localStorage.setItem('son_aktivite', Date.now());
       document.getElementById('login-screen').style.display = 'none';
       document.querySelector('.sidebar').style.display = 'flex';
       document.querySelector('.main').style.display = 'flex';
@@ -2098,11 +2801,181 @@ async function init() {
     document.getElementById('conn-dot').className = 'conn-dot err';
     document.getElementById('conn-text').textContent = 'Bağlantı yok';
   }
-  loadDashboard();
+  loadProgram();
+
+  // Bekleyen malzeme var mı - varyant destekli
+  setTimeout(() => qrMalzemeDusEkrani(), 1500);
 }
 
-// Sayfa açılınca her zaman şifre sor
+// Sayfa yüklenince URL parametresini kontrol et
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const malzemeId = params.get('malzeme');
+  if (malzemeId) {
+    localStorage.setItem('bekleyen_malzeme', malzemeId);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+})();
+
+// URL parametresi kontrolü - QR okutunca malzeme düş ekranı
+async function qrMalzemeDusEkrani() {
+  // Önce URL'den kontrol et
+  const params = new URLSearchParams(window.location.search);
+  let malzemeId = params.get('malzeme');
+  const varyantId = params.get('varyant') || localStorage.getItem('bekleyen_varyant');
+  
+  // Varyant ID varsa direkt varyant sat
+  if (varyantId) {
+    localStorage.removeItem('bekleyen_varyant');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    await new Promise(r => setTimeout(r, 800));
+    try {
+      const vData = await db('malzeme_varyantlar', 'GET', null, `?id=eq.${varyantId}&select=*`);
+      if (!vData.length) { toast('Varyant bulunamadı', true); return; }
+      const v = vData[0];
+      const mData = await db('malzemeler', 'GET', null, `?id=eq.${v.malzeme_id}&select=ad`);
+      const malzemeAd = mData[0]?.ad || '';
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+      overlay.innerHTML = `
+        <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:32px;margin-bottom:12px">📦</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">${malzemeAd}</div>
+          <div style="font-size:14px;color:var(--muted);margin-bottom:4px">${v.marka}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Stok: <strong>${v.adet}</strong> adet</div>
+          ${v.fiyat > 0 ? `<div style="font-size:15px;font-weight:600;color:var(--green);margin-bottom:16px">${v.fiyat.toLocaleString('tr-TR')} ₺</div>` : '<div style="margin-bottom:16px"></div>'}
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn primary" id="var-onay-btn" style="flex:1">✓ Sat & Düş</button>
+            <button class="btn" id="var-iptal-btn" style="flex:1">İptal</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('var-onay-btn').onclick = async () => {
+        overlay.remove();
+        await db('malzeme_varyantlar', 'PATCH', { adet: v.adet - 1 }, `?id=eq.${varyantId}`);
+        if (v.fiyat > 0) {
+          await db('gelir_gider', 'POST', { tarih: new Date().toISOString().split('T')[0], aciklama: `${malzemeAd} - ${v.marka} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: v.fiyat });
+        }
+        toast(`✓ ${v.marka} satışı onaylandı! ${v.fiyat > 0 ? v.fiyat.toLocaleString('tr-TR') + ' ₺ gelir eklendi' : ''}`);
+      };
+      document.getElementById('var-iptal-btn').onclick = () => overlay.remove();
+    } catch(e) { toast('Hata: ' + e.message, true); }
+    return;
+  }
+
+  // Yoksa localStorage'dan malzeme al
+  if (!malzemeId) {
+    malzemeId = localStorage.getItem('bekleyen_malzeme');
+  }
+  
+  if (!malzemeId) return;
+  
+  // Temizle
+  localStorage.removeItem('bekleyen_malzeme');
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  // Biraz bekle - sayfa yüklensin
+  await new Promise(r => setTimeout(r, 800));
+
+
+  try {
+    const [malzData, varyData] = await Promise.all([
+      db('malzemeler', 'GET', null, `?id=eq.${malzemeId}&select=*`),
+      db('malzeme_varyantlar', 'GET', null, `?malzeme_id=eq.${malzemeId}&select=*&order=marka.asc`)
+    ]);
+    if (!malzData.length) { toast('Malzeme bulunamadı', true); return; }
+    const m = malzData[0];
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+    window._qrOverlay = overlay;
+
+    if (varyData.length > 0) {
+      // Varyant seçim ekranı
+      const vBtns = varyData.map(v => `
+        <button onclick="varyantSatOverlay('${v.id}','${v.marka}',${v.adet},${v.fiyat||0},'${m.ad}')"
+          style="width:100%;padding:10px;margin-bottom:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;${v.adet===0?'opacity:.4;pointer-events:none':''}">
+          <span style="font-weight:500">${v.marka}${v.adet===0?' (Tükendi)':''}</span>
+          <span style="color:var(--green)">${v.adet} adet · ${v.fiyat?v.fiyat.toLocaleString('tr-TR')+' ₺':'-'}</span>
+        </button>`).join('');
+      overlay.innerHTML = `
+        <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;border:1px solid var(--border);max-height:80vh;overflow-y:auto">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">📦 ${m.ad}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Hangi marka satılacak?</div>
+          ${vBtns}
+          <button onclick="window._qrOverlay&&window._qrOverlay.remove()" style="width:100%;padding:8px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;margin-top:4px">İptal</button>
+        </div>`;
+    } else {
+      // Direkt onay ekranı
+      overlay.innerHTML = `
+        <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:320px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:32px;margin-bottom:12px">📦</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:6px">${m.ad}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Mevcut stok: <strong>${m.adet}</strong> adet</div>
+          ${m.fiyat > 0 ? `<div style="font-size:14px;font-weight:600;color:var(--green);margin-bottom:16px">${m.fiyat.toLocaleString('tr-TR')} ₺ gelir eklenecek</div>` : '<div style="margin-bottom:16px"></div>'}
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn primary" id="qr-onay-btn2" style="flex:1">✓ Sat & Düş</button>
+            <button class="btn" id="qr-iptal-btn2" style="flex:1">İptal</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('qr-onay-btn2').onclick = async () => {
+        overlay.remove();
+        await db('malzemeler', 'PATCH', { adet: m.adet - 1 }, `?id=eq.${malzemeId}`);
+        if (m.fiyat > 0) {
+          await db('gelir_gider', 'POST', { tarih: new Date().toISOString().split('T')[0], aciklama: `${m.ad} satışı`, kategori: 'malzeme_satis', tur: 'gelir', tutar: m.fiyat });
+        }
+        toast(`✓ ${m.ad} satıldı!`);
+        return;
+      };
+      document.getElementById('qr-iptal-btn2').onclick = () => overlay.remove();
+      return;
+    }
+    document.body.appendChild(overlay);
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+async function qrUrlKontrol() {
+  // Devre dışı - qrMalzemeDusEkrani kullanılıyor
+}
+
+// URL'deki malzeme parametresini HEMEN kaydet
+const __urlParams = new URLSearchParams(window.location.search);
+const __malzemeParam = __urlParams.get('malzeme');
+const __varyantParam = __urlParams.get('varyant');
+if (__malzemeParam) {
+  localStorage.setItem('bekleyen_malzeme', __malzemeParam);
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+if (__varyantParam) {
+  localStorage.setItem('bekleyen_varyant', __varyantParam);
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+// Auth kontrolü - 1 saat hareketsizlik
+if (localStorage.getItem('auth') === 'ok') {
+  const sonAktivite = parseInt(localStorage.getItem('son_aktivite') || '0');
+  const birSaat = 60 * 60 * 1000;
+  if (Date.now() - sonAktivite > birSaat) {
+    localStorage.removeItem('auth');
+    localStorage.removeItem('token');
+    localStorage.removeItem('son_aktivite');
+  } else {
+    localStorage.setItem('son_aktivite', Date.now());
+    document.getElementById('login-screen').style.display = 'none';
+    document.querySelector('.sidebar').style.display = 'flex';
+    document.querySelector('.main').style.display = 'flex';
+    init();
+  }
+}
+
+// Aktiviteyi takip et - her tıklamada güncelle
+document.addEventListener('click', () => {
+  if (localStorage.getItem('auth') === 'ok') {
+    localStorage.setItem('son_aktivite', Date.now());
+  }
+});
 </script>
-
-
-</body></html>
+</body>
+</html>
