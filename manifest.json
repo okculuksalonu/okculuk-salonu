@@ -1,0 +1,25 @@
+{
+  "name": "Edremit Nuk Okçuluk",
+  "short_name": "Edremit Nuk",
+  "description": "Edremit Nuk Okçuluk Salonu Yönetim Paneli",
+  "start_url": "/okculuk-salonu/",
+  "scope": "/okculuk-salonu/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1916",
+  "theme_color": "#1a1916",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
