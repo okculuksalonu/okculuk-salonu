@@ -333,12 +333,15 @@
 
     <!-- DERS PROGRAMI -->
     <div class="page active" id="page-program">
-      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-        <button class="btn primary" id="gun-Salı" onclick="filterGun('Salı',this)">Salı</button>
-        <button class="btn" id="gun-Çarşamba" onclick="filterGun('Çarşamba',this)">Çarşamba</button>
-        <button class="btn" id="gun-Perşembe" onclick="filterGun('Perşembe',this)">Perşembe</button>
-        <button class="btn" id="gun-Cuma" onclick="filterGun('Cuma',this)">Cuma</button>
-        <button class="btn" id="gun-Cumartesi" onclick="filterGun('Cumartesi',this)">Cumartesi</button>
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn primary" id="gun-Salı" onclick="filterGun('Salı',this)">Salı</button>
+          <button class="btn" id="gun-Çarşamba" onclick="filterGun('Çarşamba',this)">Çarşamba</button>
+          <button class="btn" id="gun-Perşembe" onclick="filterGun('Perşembe',this)">Perşembe</button>
+          <button class="btn" id="gun-Cuma" onclick="filterGun('Cuma',this)">Cuma</button>
+          <button class="btn" id="gun-Cumartesi" onclick="filterGun('Cumartesi',this)">Cumartesi</button>
+        </div>
+        <button class="btn" onclick="tumProgramiGoster()">📋 Tüm Programa Göz At</button>
       </div>
       <div id="program-content"><div class="loading"><div class="spinner"></div> Yükleniyor...</div></div>
     </div>
@@ -2779,6 +2782,59 @@ async function detayMusaitSlotlariGoster() {
   slotRender(slotlar, document.getElementById('d2-slot-listesi'), document.getElementById('d2-slot-kac'), haftalikSaat, detaySecilenSlotlar);
 }
 
+
+async function tumProgramiGoster() {
+  const icerik = document.getElementById('tum-program-icerik');
+  icerik.innerHTML = '<div class="loading" style="padding:20px"><div class="spinner"></div> Yükleniyor...</div>';
+  openModal('m-tum-program');
+
+  if (!programCache.length) {
+    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+  }
+
+  const gunler = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  const tumSaatler = [...new Set(programCache.map(r => r.saat))].sort();
+
+  if (!tumSaatler.length) {
+    icerik.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Ders programı boş</div>';
+    return;
+  }
+
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  // Başlık satırı
+  html += '<thead><tr>';
+  html += '<th style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);text-align:left;font-weight:600;min-width:70px">Saat</th>';
+  gunler.forEach(gun => {
+    html += '<th style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);text-align:left;font-weight:600;min-width:140px">' + gun + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  // Her saat için satır
+  tumSaatler.forEach(saat => {
+    html += '<tr>';
+    html += '<td style="padding:8px 12px;border:1px solid var(--border);font-weight:600;color:var(--accent);white-space:nowrap;vertical-align:top">' + saat + '</td>';
+    gunler.forEach(gun => {
+      const dersler = programCache.filter(r => r.gun === gun && r.saat === saat);
+      if (dersler.length) {
+        html += '<td style="padding:8px 12px;border:1px solid var(--border);vertical-align:top">';
+        dersler.forEach(d => {
+          html += '<div style="margin-bottom:4px;padding:4px 8px;background:var(--accent-light);border-radius:4px;color:var(--text)">';
+          html += '<div style="font-weight:500">' + (d.sporcu_adi || '-') + '</div>';
+          if (d.yay) html += '<div style="font-size:11px;color:var(--muted)">' + d.yay + '</div>';
+          if (d.salon) html += '<div style="font-size:10px;color:var(--muted)">' + d.salon + '</div>';
+          html += '</div>';
+        });
+        html += '</td>';
+      } else {
+        html += '<td style="padding:8px 12px;border:1px solid var(--border);color:var(--muted);font-size:11px">—</td>';
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  icerik.innerHTML = html;
+}
 function malzemeToggle(id) {
   const grup = document.getElementById('varyant-grup-' + id);
   const icon = document.getElementById('toggle-icon-' + id);
@@ -3584,5 +3640,25 @@ document.addEventListener('click', () => {
     });
   }
 </script>
+<div class="overlay" id="m-tum-program">
+  <div class="modal" style="width:900px;max-width:95vw">
+    <div class="modal-head">
+      <span class="modal-title">📋 Haftalık Ders Programı</span>
+      <button class="btn sm" onclick="closeModal('m-tum-program')">✕</button>
+    </div>
+    <div id="tum-program-icerik" style="overflow-x:auto"></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-tum-program">
+  <div class="modal" style="width:960px;max-width:96vw">
+    <div class="modal-head">
+      <span class="modal-title">📋 Haftalık Ders Programı</span>
+      <button class="btn sm" onclick="closeModal('m-tum-program')">✕</button>
+    </div>
+    <div id="tum-program-icerik" style="overflow-x:auto;padding:4px 0"></div>
+  </div>
+</div>
+
 </body>
 </html>
