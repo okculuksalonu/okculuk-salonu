@@ -2666,16 +2666,13 @@ function slotRender(slotlar, containerEl, kacEl, haftalikSaat, secilenler, onTog
   containerEl.innerHTML = slotlar.map(s => {
     const secili = secilenler.some(x => x.gun === s.gun && x.saat === s.saat);
     const dolu = !secili && secilenler.length >= haftalikSaat;
-    return `<div onclick="${dolu ? '' : `toggleSlot(this,'${s.gun}','${s.saat}')`}"
-      style="padding:8px 10px;border:2px solid ${secili ? 'var(--accent)' : 'var(--border)'};
-             border-radius:var(--radius-sm);font-size:12px;cursor:${dolu ? 'not-allowed' : 'pointer'};
-             background:${secili ? 'var(--accent-light)' : dolu ? '#f5f5f5' : 'var(--surface)'};
-             color:${dolu && !secili ? 'var(--muted)' : 'var(--text)'};user-select:none"
-      data-gun="${s.gun}" data-saat="${s.saat}">
-      <div style="font-weight:600">${s.gun}</div>
-      <div style="color:var(--muted)">${s.saat}</div>
-      ${s.toplam < 999 ? `<div style="font-size:10px;color:${s.kullanan > 0 ? '#e67e22' : 'var(--green)'}">${s.kullanan}/${s.toplam} yay kullanımda</div>` : ''}
-    </div>`;
+    const onclickStr = dolu ? '' : "toggleSlot(this,'" + s.gun + "','" + s.saat + "')";
+    const borderColor = secili ? 'var(--accent)' : 'var(--border)';
+    const bgColor = secili ? 'var(--accent-light)' : dolu ? '#f5f5f5' : 'var(--surface)';
+    const cursor = dolu ? 'not-allowed' : 'pointer';
+    const textColor = (dolu && !secili) ? 'var(--muted)' : 'var(--text)';
+    const yayInfo = s.toplam < 999 ? '<div style="font-size:10px;color:' + (s.kullanan > 0 ? '#e67e22' : 'var(--green)') + '">' + s.kullanan + '/' + s.toplam + ' yay kullanımda</div>' : '';
+    return '<div onclick="' + onclickStr + '" style="padding:8px 10px;border:2px solid ' + borderColor + ';border-radius:var(--radius-sm);font-size:12px;cursor:' + cursor + ';background:' + bgColor + ';color:' + textColor + ';user-select:none" data-gun="' + s.gun + '" data-saat="' + s.saat + '"><div style="font-weight:600">' + s.gun + '</div><div style="color:var(--muted)">' + s.saat + '</div>' + yayInfo + '</div>';
   }).join('');
 }
 
