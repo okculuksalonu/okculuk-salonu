@@ -1490,7 +1490,21 @@ async function toggleDurum(id, mevcutDurum) {
     if (yeniDurum === 'pasif') {
       const s = sporcularCache.find(x => x.id === id);
       if (s) {
-        await db('ders_programi', 'DELETE', null, `?sporcu_adi=eq.${encodeURIComponent(s.ad_soyad)}`);
+        const adParcalari = s.ad_soyad.trim().split(' ');
+        const ad = adParcalari[0]; // Sadece adı al
+        const soyad = adParcalari[adParcalari.length - 1]; // Soyadı al
+        const soyadIlk = soyad[0].toUpperCase(); // Soyadın ilk harfi
+        // Tam eşleşme veya "Ad S." formatı ile dene
+        const tumProgram = await db('ders_programi', 'GET', null, '?select=id,sporcu_adi');
+        const silinecekler = tumProgram.filter(p => {
+          const pAd = (p.sporcu_adi || '').trim();
+          return pAd === s.ad_soyad || // Tam eşleşme
+                 pAd === ad + ' ' + soyadIlk + '.' || // "Ahmet K."
+                 pAd.toLowerCase().startsWith(ad.toLowerCase() + ' '); // Adla başlayan
+        });
+        for (const p of silinecekler) {
+          await db('ders_programi', 'DELETE', null, `?id=eq.${p.id}`);
+        }
         programCache = [];
       }
       toast('Sporcu pasif yapıldı — ders programından çıkarıldı');
@@ -1909,6 +1923,28 @@ async function loadProgram() {
     if (!programCache.length) {
       programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc');
     }
+
+    // Ders programındaki isimleri sporcular listesiyle senkronize et
+    const sporcular = sporcularCache.length ? sporcularCache : await db('sporcular', 'GET', null, '?select=id,ad_soyad&order=ad_soyad.asc');
+    for (const kayit of programCache) {
+      const pAd = (kayit.sporcu_adi || '').trim();
+      // Tam eşleşme varsa atla
+      if (sporcular.some(s => s.ad_soyad === pAd)) continue;
+      // Eşleşmeyen varsa sporcular arasında benzerini bul
+      const eslesme = sporcular.find(s => {
+        const parcalar = s.ad_soyad.trim().split(' ');
+        const ad = parcalar[0].toLowerCase();
+        const soyad = parcalar[parcalar.length - 1].toLowerCase();
+        const soyadKisalt = soyad[0].toUpperCase() + '.';
+        return pAd.toLowerCase() === ad + ' ' + soyadKisalt.toLowerCase() || // "Ahmet K."
+               pAd.toLowerCase().startsWith(ad + ' ') && pAd.split(' ').length < parcalar.length; // eksik soyad
+      });
+      if (eslesme) {
+        await db('ders_programi', 'PATCH', { sporcu_adi: eslesme.ad_soyad }, `?id=eq.${kayit.id}`).catch(() => {});
+        kayit.sporcu_adi = eslesme.ad_soyad;
+      }
+    }
+
     await Promise.all([loadYoklama(), loadYayEnvanteri()]);
     // Aktif gün butonunu güncelle
     document.querySelectorAll('#page-program .btn').forEach(b => b.classList.remove('primary'));
