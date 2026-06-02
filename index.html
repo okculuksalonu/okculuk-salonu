@@ -739,6 +739,19 @@
       </div>
     </div>
     <div id="oa-kalan-info" style="display:none;margin-top:10px;padding:8px 12px;background:#FAEEDA;border-radius:var(--radius-sm);font-size:12px;color:#854F0B"></div>
+    <div id="oa-kalan-secim" style="display:none;margin-top:10px">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Kalan tutar için ne yapılsın?</div>
+      <div style="display:flex;gap:8px">
+        <label style="flex:1;display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;transition:border-color .15s" id="oa-borc-label">
+          <input type="radio" name="oa-kalan" id="oa-kalan-borc" value="borc" checked onchange="kalanSecimGuncelle()">
+          <span>📋 Borç olarak kalsın</span>
+        </label>
+        <label style="flex:1;display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:12px;transition:border-color .15s" id="oa-sil-label">
+          <input type="radio" name="oa-kalan" id="oa-kalan-sil" value="sil" onchange="kalanSecimGuncelle()">
+          <span>✅ Borcu sil (tam ödendi say)</span>
+        </label>
+      </div>
+    </div>
     
     <div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
@@ -912,6 +925,8 @@ function toggleOdeme(sporcuId, mevcutDurum, ay, kalanTutar) {
   document.getElementById('oa-tutar').value = beklenenTutar || '';
   document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
   document.getElementById('oa-kalan-info').style.display = 'none';
+  document.getElementById('oa-kalan-secim').style.display = 'none';
+  document.getElementById('oa-kalan-borc').checked = true;
   document.getElementById('oa-ertelendi').checked = false;
   document.getElementById('oa-tutar').disabled = false;
   document.getElementById('oa-ertelendi-tarih').style.display = 'none';
@@ -922,18 +937,38 @@ function toggleOdeme(sporcuId, mevcutDurum, ay, kalanTutar) {
     const alinan = parseFloat(this.value) || 0;
     const kalan = beklenenTutar - alinan;
     const info = document.getElementById('oa-kalan-info');
+    const secim = document.getElementById('oa-kalan-secim');
     if (kalan > 0) {
       info.style.display = 'block';
-      info.textContent = `⚠️ ${kalan.toLocaleString('tr-TR')} ₺ eksik ödeme — kalan borç olarak kaydedilecek`;
+      info.style.background = '#FAEEDA';
+      info.style.color = '#854F0B';
+      info.textContent = '⚠️ ' + kalan.toLocaleString('tr-TR') + ' ₺ eksik ödeme';
+      secim.style.display = 'block';
+      document.getElementById('oa-kalan-borc').checked = true;
+      kalanSecimGuncelle();
     } else if (kalan < 0) {
       info.style.display = 'block';
       info.style.background = '#E1F5EE';
       info.style.color = '#0F6E56';
-      info.textContent = `✓ ${Math.abs(kalan).toLocaleString('tr-TR')} ₺ fazla ödeme`;
+      info.textContent = '✓ ' + Math.abs(kalan).toLocaleString('tr-TR') + ' ₺ fazla ödeme';
+      secim.style.display = 'none';
     } else {
       info.style.display = 'none';
+      secim.style.display = 'none';
     }
   };
+}
+
+function kalanSecimGuncelle() {
+  const borc = document.getElementById('oa-kalan-borc').checked;
+  document.getElementById('oa-borc-label').style.borderColor = borc ? 'var(--accent)' : 'var(--border)';
+  document.getElementById('oa-sil-label').style.borderColor = !borc ? 'var(--accent)' : 'var(--border)';
+}
+
+function kalanSecimGuncelle() {
+  const borc = document.getElementById('oa-kalan-borc').checked;
+  document.getElementById('oa-borc-label').style.borderColor = borc ? 'var(--accent)' : 'var(--border)';
+  document.getElementById('oa-sil-label').style.borderColor = !borc ? 'var(--accent)' : 'var(--border)';
 }
 
 function odemeErtelen(cb) {
@@ -960,7 +995,8 @@ async function odemeKaydet() {
   const s = sporcularCache.find(x => x.id === sporcuId);
   const beklenenTutar = s ? (s.aylik_ucret || 0) : 0;
   const kalanBorc = beklenenTutar - tutar;
-  const tamOdendi = ertelendi ? false : (kalanBorc <= 0);
+  const kalanSil = document.getElementById('oa-kalan-sil') && document.getElementById('oa-kalan-sil').checked;
+  const tamOdendi = ertelendi ? false : (kalanBorc <= 0 || kalanSil);
 
   const kayit = { 
     sporcu_id: sporcuId, 
