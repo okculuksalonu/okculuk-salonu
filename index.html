@@ -1691,28 +1691,22 @@ async function detaySporcu(id) {
   // Yay listesini doldur
   const yaySelect = document.getElementById('d2-atanan-yay');
   yaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
-  if (yayEnvanteriCache.length) {
-    yayEnvanteriCache.forEach(y => {
-      const opt = document.createElement('option');
-      opt.value = `${y.libre} ${y.tip}`;
-      opt.textContent = `${y.libre} Libre ${y.tip}`;
-      if (s.atanan_yay === opt.value) opt.selected = true;
-      yaySelect.appendChild(opt);
-    });
-    if (s.atanan_yay === 'Kendi Yayı') yaySelect.value = 'Kendi Yayı';
-  } else {
-    db('yay_envanteri', 'GET', null, '?select=*&order=libre.asc').then(yaylar => {
-      yayEnvanteriCache = yaylar;
-      yaylar.forEach(y => {
-        const opt = document.createElement('option');
-        opt.value = `${y.libre} ${y.tip}`;
-        opt.textContent = `${y.libre} Libre ${y.tip}`;
-        if (s.atanan_yay === opt.value) opt.selected = true;
-        yaySelect.appendChild(opt);
-      });
-      if (s.atanan_yay === 'Kendi Yayı') yaySelect.value = 'Kendi Yayı';
-    });
+  // Ders programındaki yayı al — atanan_yay yoksa oradan doldur
+  if (!programCache.length) {
+    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
   }
+  const programdakiYay = programCache.find(r => r.sporcu_adi === s.ad_soyad || r.sporcu_id === s.id);
+  const gosterilecekYay = s.atanan_yay || (programdakiYay ? programdakiYay.yay : null);
+
+  await loadYayEnvanteri();
+  yayEnvanteriCache.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y.libre + ' ' + y.tip;
+    opt.textContent = y.libre + ' Libre ' + y.tip;
+    if (gosterilecekYay === opt.value) opt.selected = true;
+    yaySelect.appendChild(opt);
+  });
+  if (gosterilecekYay === 'Kendi Yayı') yaySelect.value = 'Kendi Yayı';
   
   document.getElementById('d2-veli-ad').value = s.veli_adi || '';
   document.getElementById('d2-veli-tel').value = s.veli_telefonu || '';
@@ -1734,20 +1728,21 @@ async function detaySporcu(id) {
   await loadYayEnvanteri();
   const d2YaySelect = document.getElementById('d2-kullandigi-yay');
   d2YaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
-  yayEnvanteriCache.forEach(y => {
-    const opt = document.createElement('option');
-    opt.value = y.libre + ' ' + y.tip;
-    opt.textContent = y.libre + ' Libre ' + y.tip;
-    if (s.atanan_yay === opt.value) opt.selected = true;
-    d2YaySelect.appendChild(opt);
-  });
-  if (s.atanan_yay === 'Kendi Yayı') d2YaySelect.value = 'Kendi Yayı';
-
   // Mevcut ders günlerini göster
   if (!programCache.length) {
     programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
   }
   const mevcutDersler = programCache.filter(r => r.sporcu_id === s.id || r.sporcu_adi === s.ad_soyad);
+  const mevcutYay = s.atanan_yay || (mevcutDersler.length ? mevcutDersler[0].yay : null);
+
+  yayEnvanteriCache.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y.libre + ' ' + y.tip;
+    opt.textContent = y.libre + ' Libre ' + y.tip;
+    if (mevcutYay === opt.value) opt.selected = true;
+    d2YaySelect.appendChild(opt);
+  });
+  if (mevcutYay === 'Kendi Yayı') d2YaySelect.value = 'Kendi Yayı';
   const mevcutEl = document.getElementById('d2-mevcut-dersler');
   if (mevcutDersler.length) {
     mevcutEl.innerHTML = mevcutDersler.map(r => 
