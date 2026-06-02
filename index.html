@@ -2682,15 +2682,17 @@ let sporcuSecilenSlotlar = [];
 
 async function sporcuDersSaatiGuncelle() {
   sporcuSecilenSlotlar = [];
-  await sporcuMusaitSlotlariGoster();
+  document.getElementById('s-ders-slotlari').style.display = 'none';
+  // Yay zaten seçiliyse slotları göster
+  const yay = document.getElementById('s-kullandigi-yay').value;
+  if (yay) await sporcuMusaitSlotlariGoster();
 }
 
 async function sporcuMusaitSlotlariGoster() {
   const haftalikSaat = parseInt(document.getElementById('s-haftalik-saat').value) || 0;
   const yay = document.getElementById('s-kullandigi-yay').value;
   const bolum = document.getElementById('s-ders-slotlari');
-  if (!haftalikSaat) { bolum.style.display = 'none'; return; }
-  if (!yay) { bolum.style.display = 'none'; toast('Önce yay seçiniz', true); document.getElementById('s-haftalik-saat').value = ''; return; }
+  if (!haftalikSaat || !yay) { bolum.style.display = 'none'; return; }
   bolum.style.display = 'block';
   document.getElementById('s-slot-listesi').innerHTML = '<div style="font-size:12px;color:var(--muted)">Yükleniyor...</div>';
   const slotlar = await musaitSlotlariHesapla(yay, null);
@@ -2729,7 +2731,10 @@ let detaySecilenSlotlar = [];
 
 async function detayDersSaatiGuncelle() {
   detaySecilenSlotlar = [];
-  await detayMusaitSlotlariGoster();
+  document.getElementById('d2-ders-slotlari').style.display = 'none';
+  // Yay zaten seçiliyse slotları göster
+  const yay = document.getElementById('d2-kullandigi-yay').value;
+  if (yay) await detayMusaitSlotlariGoster();
 }
 
 async function detayMusaitSlotlariGoster() {
@@ -2737,8 +2742,7 @@ async function detayMusaitSlotlariGoster() {
   const yay = document.getElementById('d2-kullandigi-yay').value;
   const sporcuId = document.getElementById('d2-id').value;
   const bolum = document.getElementById('d2-ders-slotlari');
-  if (!haftalikSaat) { bolum.style.display = 'none'; return; }
-  if (!yay) { bolum.style.display = 'none'; toast('Önce yay seçiniz', true); document.getElementById('d2-haftalik-saat').value = ''; return; }
+  if (!haftalikSaat || !yay) { bolum.style.display = 'none'; return; }
   bolum.style.display = 'block';
   document.getElementById('d2-slot-listesi').innerHTML = '<div style="font-size:12px;color:var(--muted)">Yükleniyor...</div>';
   const slotlar = await musaitSlotlariHesapla(yay, sporcuId);
