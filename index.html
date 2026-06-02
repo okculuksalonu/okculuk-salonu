@@ -2621,8 +2621,16 @@ async function musaitSlotlariHesapla(yayStr, haricSporcuId) {
     programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
   }
 
-  const gunler = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
-  const saatler = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+  // Ders programındaki gerçek gün/saat kombinasyonlarını al
+  const mevcutSlotlar = [...new Set(programCache.map(r => r.gun + '|' + r.saat))]
+    .map(k => { const [gun, saat] = k.split('|'); return { gun, saat }; })
+    .sort((a, b) => {
+      const gunSira = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+      const gi = gunSira.indexOf(a.gun) - gunSira.indexOf(b.gun);
+      return gi !== 0 ? gi : a.saat.localeCompare(b.saat);
+    });
+
+  if (!mevcutSlotlar.length) return [];
 
   let yayAdet = 999; // Kendi yayı veya bilinmiyorsa sınır yok
   if (yayStr && !yayStr.toLowerCase().includes('kendi')) {
@@ -2634,17 +2642,14 @@ async function musaitSlotlariHesapla(yayStr, haricSporcuId) {
   }
 
   const slotlar = [];
-  for (const gun of gunler) {
-    for (const saat of saatler) {
-      // Bu gün/saatte kaç kişi var ve bu yayı kaç kişi kullanıyor?
-      const buSlottakiler = programCache.filter(r => r.gun === gun && r.saat === saat && r.sporcu_id !== haricSporcuId);
-      const yayKullananlar = yayStr && !yayStr.toLowerCase().includes('kendi')
-        ? buSlottakiler.filter(r => r.yay && r.yay.trim().toLowerCase() === yayStr.trim().toLowerCase()).length
-        : 0;
-      const musait = yayKullananlar < yayAdet;
-      if (musait) {
-        slotlar.push({ gun, saat, kullanan: yayKullananlar, toplam: yayAdet });
-      }
+  for (const { gun, saat } of mevcutSlotlar) {
+    const buSlottakiler = programCache.filter(r => r.gun === gun && r.saat === saat && r.sporcu_id !== haricSporcuId);
+    const yayKullananlar = yayStr && !yayStr.toLowerCase().includes('kendi')
+      ? buSlottakiler.filter(r => r.yay && r.yay.trim().toLowerCase() === yayStr.trim().toLowerCase()).length
+      : 0;
+    const musait = yayKullananlar < yayAdet;
+    if (musait) {
+      slotlar.push({ gun, saat, kullanan: yayKullananlar, toplam: yayAdet });
     }
   }
   return slotlar;
@@ -2685,6 +2690,7 @@ async function sporcuMusaitSlotlariGoster() {
   const yay = document.getElementById('s-kullandigi-yay').value;
   const bolum = document.getElementById('s-ders-slotlari');
   if (!haftalikSaat) { bolum.style.display = 'none'; return; }
+  if (!yay) { bolum.style.display = 'none'; toast('Önce yay seçiniz', true); document.getElementById('s-haftalik-saat').value = ''; return; }
   bolum.style.display = 'block';
   document.getElementById('s-slot-listesi').innerHTML = '<div style="font-size:12px;color:var(--muted)">Yükleniyor...</div>';
   const slotlar = await musaitSlotlariHesapla(yay, null);
@@ -2732,6 +2738,7 @@ async function detayMusaitSlotlariGoster() {
   const sporcuId = document.getElementById('d2-id').value;
   const bolum = document.getElementById('d2-ders-slotlari');
   if (!haftalikSaat) { bolum.style.display = 'none'; return; }
+  if (!yay) { bolum.style.display = 'none'; toast('Önce yay seçiniz', true); document.getElementById('d2-haftalik-saat').value = ''; return; }
   bolum.style.display = 'block';
   document.getElementById('d2-slot-listesi').innerHTML = '<div style="font-size:12px;color:var(--muted)">Yükleniyor...</div>';
   const slotlar = await musaitSlotlariHesapla(yay, sporcuId);
