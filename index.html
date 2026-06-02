@@ -921,7 +921,8 @@ function toggleOdeme(sporcuId, mevcutDurum, ay, kalanTutar) {
   document.getElementById('oa-ay').value = hedefAy;
   document.getElementById('oa-sporcu-ad').textContent = s ? s.ad_soyad : '';
   document.getElementById('oa-ay-label').textContent = ayAdlari[parseInt(ayNo)] + ' ' + yil + ' ödemesi';
-  document.getElementById('oa-beklenen').textContent = beklenenTutar ? beklenenTutar.toLocaleString('tr-TR') + ' ₺' : '-';
+  const gosterilecekBeklenen = kalanTutar || beklenenTutar;
+  document.getElementById('oa-beklenen').textContent = gosterilecekBeklenen ? gosterilecekBeklenen.toLocaleString('tr-TR') + ' ₺' : '-';
   document.getElementById('oa-tutar').value = beklenenTutar || '';
   document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
   document.getElementById('oa-kalan-info').style.display = 'none';
@@ -965,12 +966,6 @@ function kalanSecimGuncelle() {
   document.getElementById('oa-sil-label').style.borderColor = !borc ? 'var(--accent)' : 'var(--border)';
 }
 
-function kalanSecimGuncelle() {
-  const borc = document.getElementById('oa-kalan-borc').checked;
-  document.getElementById('oa-borc-label').style.borderColor = borc ? 'var(--accent)' : 'var(--border)';
-  document.getElementById('oa-sil-label').style.borderColor = !borc ? 'var(--accent)' : 'var(--border)';
-}
-
 function odemeErtelen(cb) {
   const tutarInput = document.getElementById('oa-tutar');
   const tarihDiv = document.getElementById('oa-ertelendi-tarih');
@@ -991,9 +986,10 @@ async function odemeKaydet() {
   
   if (!ertelendi && !tutar) { toast('Tutar giriniz', true); return; }
 
-  // Beklenen tutar ile karşılaştır — eksik ödeme varsa odendi=false, tutar=kalan borç
+  // Beklenen tutar: o aydaki gerçek borç (toggleOdeme'den gelir), yoksa aylık ücret
   const s = sporcularCache.find(x => x.id === sporcuId);
-  const beklenenTutar = s ? (s.aylik_ucret || 0) : 0;
+  const _oa_beklenen = parseFloat(document.getElementById('oa-beklenen').textContent.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+  const beklenenTutar = _oa_beklenen || (s ? (s.aylik_ucret || 0) : 0);
   const kalanBorc = beklenenTutar - tutar;
   const kalanSil = document.getElementById('oa-kalan-sil') && document.getElementById('oa-kalan-sil').checked;
   const tamOdendi = ertelendi ? false : (kalanBorc <= 0 || kalanSil);
@@ -1448,8 +1444,7 @@ function sporcuRow(s, odendi, ay) {
   const rowStyle = odendiVal ? 'background:#B6E8D3;' : (gectiVal ? 'background:#F5C0C0;' : '');
   const kalanBorc = !odendiVal && tutarVal && tutarVal > 0 ? tutarVal : null;
   const odemeBtn = s.durum === 'aktif' ? `
-    ${kalanBorc ? `<div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:3px">Kalan: ${kalanBorc.toLocaleString('tr-TR')} ₺</div>` : ''}
-    <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})">
+    <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})" title="${kalanBorc ? 'Kalan: ' + kalanBorc.toLocaleString('tr-TR') + ' ₺' : ''}">
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
     </button>` : '';
   return `<tr style="${rowStyle}">
