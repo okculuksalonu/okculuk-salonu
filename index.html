@@ -1773,7 +1773,8 @@ async function saveDetay() {
         sporcu_id: id,
         gun: slot.gun,
         saat: slot.saat,
-        yay: body.atanan_yay
+        yay: body.atanan_yay,
+        salon: 'İç'
       }).catch(() => {});
     }
     if (detaySecilenSlotlar.length) programCache = [];
@@ -1895,7 +1896,8 @@ async function saveSporcu() {
         sporcu_id: sporcuId,
         gun: slot.gun,
         saat: slot.saat,
-        yay: kullandigiYay
+        yay: kullandigiYay,
+        salon: 'İç'
       }).catch(() => {});
     }
     programCache = [];
@@ -2641,18 +2643,12 @@ async function musaitSlotlariHesapla(yayStr, haricSporcuId) {
     if (envanter) yayAdet = envanter.adet;
   }
 
-  // Debug: ders programındaki yay değerlerini logla
-  const tumYaylar = [...new Set(programCache.map(r => r.yay).filter(Boolean))];
-  console.log('Ders programındaki yay değerleri:', tumYaylar);
-  console.log('Aranan yay:', yayStr);
-
   const slotlar = [];
   for (const { gun, saat } of mevcutSlotlar) {
     const buSlottakiler = programCache.filter(r => r.gun === gun && r.saat === saat);
     const yayKullananlar = yayStr && !yayStr.toLowerCase().includes('kendi')
       ? buSlottakiler.filter(r => r.yay && r.yay.trim().toLowerCase() === yayStr.trim().toLowerCase()).length
       : 0;
-    console.log(`${gun} ${saat}: buSlottakiler=${buSlottakiler.length}, yayKullananlar=${yayKullananlar}, yayAdet=${yayAdet}`);
     const musait = yayKullananlar < yayAdet;
     if (musait) {
       slotlar.push({ gun, saat, kullanan: yayKullananlar, toplam: yayAdet });
