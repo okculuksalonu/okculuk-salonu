@@ -407,6 +407,32 @@
       <div class="form-group"><label>Veli Telefonu</label><input id="s-veli-tel" type="tel" placeholder="05xx xxx xx xx"></div>
       <div class="form-group full"><label>Veli Mesleği</label><input id="s-veli-meslek" type="text" placeholder="Meslek"></div>
     </div>
+    <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:14px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">📅 Ders Programı</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Haftalık Ders Saati</label>
+          <select id="s-haftalik-saat" onchange="sporcuDersSaatiGuncelle()">
+            <option value="">Seç</option>
+            <option value="1">Haftada 1</option>
+            <option value="2">Haftada 2</option>
+            <option value="3">Haftada 3</option>
+            <option value="4">Haftada 4</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Kullanacağı Yay</label>
+          <select id="s-kullandigi-yay" onchange="sporcuMüsaitSlotlariGoster()">
+            <option value="">-- Yay Seç --</option>
+            <option value="Kendi Yayı">🏹 Kendi Yayı</option>
+          </select>
+        </div>
+      </div>
+      <div id="s-ders-slotlari" style="display:none;margin-top:10px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Müsait ders saatlerinden <span id="s-slot-kac"></span> tane seçin:</div>
+        <div id="s-slot-listesi" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px"></div>
+      </div>
+    </div>
     <div class="modal-footer"><button class="btn" onclick="closeModal('m-sporcu')">İptal</button><button class="btn primary" onclick="saveSporcu()">Kaydet</button></div>
   </div>
 </div>
@@ -467,6 +493,40 @@
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="yay"> Yay</label>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="puan_defteri"> Puan Defteri</label>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px"><input type="checkbox" data-ekipman="parmak_ipi"> Parmak İpi</label>
+    </div>
+
+    <div style="margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+      <button onclick="toggleDersProgrami()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit;color:var(--text)">
+        <span>📅 Ders Programı</span>
+        <span id="ders-programi-icon" style="font-size:11px;color:var(--muted)">▼ Göster</span>
+      </button>
+      <div id="ders-programi-panel" style="display:none;padding:12px;border-top:1px solid var(--border)">
+        <div class="form-grid" style="margin-bottom:10px">
+          <div class="form-group">
+            <label>Haftalık Ders Saati</label>
+            <select id="d2-haftalik-saat" onchange="detayDersSaatiGuncelle()">
+              <option value="">Seç</option>
+              <option value="1">Haftada 1</option>
+              <option value="2">Haftada 2</option>
+              <option value="3">Haftada 3</option>
+              <option value="4">Haftada 4</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kullandığı Yay</label>
+            <select id="d2-kullandigi-yay" onchange="detayMüsaitSlotlariGoster()">
+              <option value="">-- Yay Seç --</option>
+              <option value="Kendi Yayı">🏹 Kendi Yayı</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--muted)">Mevcut Ders Günleri</div>
+        <div id="d2-mevcut-dersler" style="margin-bottom:10px"></div>
+        <div id="d2-ders-slotlari" style="display:none">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Müsait saatlerden <span id="d2-slot-kac"></span> tane seçin:</div>
+          <div id="d2-slot-listesi" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px"></div>
+        </div>
+      </div>
     </div>
 
     <div style="margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
@@ -1575,7 +1635,7 @@ function toggleNotlar() {
   }
 }
 
-function detaySporcu(id) {
+async function detaySporcu(id) {
   const s = sporcularCache.find(x => x.id === id);
   if (!s) return;
   currentDetaySporcu = id;
@@ -1628,6 +1688,43 @@ function detaySporcu(id) {
   document.getElementById('notlar-icon').textContent = '▼ Göster';
   document.getElementById('gecmis-odeme-panel').style.display = 'none';
   document.getElementById('gecmis-odeme-icon').textContent = '▼ Göster';
+  document.getElementById('ders-programi-panel').style.display = 'none';
+  document.getElementById('ders-programi-icon').textContent = '▼ Göster';
+  detaySecilenSlotlar = [];
+  document.getElementById('d2-ders-slotlari').style.display = 'none';
+
+  // Haftalık saat
+  document.getElementById('d2-haftalik-saat').value = s.haftalik_saat || '';
+
+  // Yay listesini doldur
+  await loadYayEnvanteri();
+  const d2YaySelect = document.getElementById('d2-kullandigi-yay');
+  d2YaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
+  yayEnvanteriCache.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y.libre + ' ' + y.tip;
+    opt.textContent = y.libre + ' Libre ' + y.tip;
+    if (s.atanan_yay === opt.value) opt.selected = true;
+    d2YaySelect.appendChild(opt);
+  });
+  if (s.atanan_yay === 'Kendi Yayı') d2YaySelect.value = 'Kendi Yayı';
+
+  // Mevcut ders günlerini göster
+  if (!programCache.length) {
+    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+  }
+  const mevcutDersler = programCache.filter(r => r.sporcu_id === s.id || r.sporcu_adi === s.ad_soyad);
+  const mevcutEl = document.getElementById('d2-mevcut-dersler');
+  if (mevcutDersler.length) {
+    mevcutEl.innerHTML = mevcutDersler.map(r => 
+      `<span style="display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:20px;padding:3px 10px;font-size:12px;margin:2px 4px 2px 0">
+        ${r.gun} ${r.saat}
+        <span onclick="dersSil('${r.id}')" style="cursor:pointer;margin-left:4px;color:var(--red)">✕</span>
+      </span>`
+    ).join('');
+  } else {
+    mevcutEl.innerHTML = '<span style="font-size:12px;color:var(--muted)">Ders programında kayıt yok</span>';
+  }
 
   const ekipmanlar = s.ekipmanlar || {};
   document.querySelectorAll('#detay-ekipmanlar input[type=checkbox]').forEach(cb => {
@@ -1663,9 +1760,23 @@ async function saveDetay() {
     notlar: document.getElementById('d2-notlar').value || null,
     ekipmanlar,
   };
+  body.haftalik_saat = parseInt(document.getElementById('d2-haftalik-saat').value) || null;
+  body.atanan_yay = document.getElementById('d2-kullandigi-yay').value || null;
+
   if (!body.ad_soyad) { toast('Ad soyad zorunlu', true); return; }
   try {
     await db('sporcular', 'PATCH', body, `?id=eq.${id}`);
+    // Yeni seçilen slotları ders programına ekle
+    for (const slot of detaySecilenSlotlar) {
+      await db('ders_programi', 'POST', {
+        sporcu_adi: body.ad_soyad,
+        sporcu_id: id,
+        gun: slot.gun,
+        saat: slot.saat,
+        yay: body.atanan_yay
+      }).catch(() => {});
+    }
+    if (detaySecilenSlotlar.length) programCache = [];
 
     // Ödeme günü değiştiyse gelecek ayların vade tarihlerini güncelle
     const eskiSporcu = sporcularCache.find(x => x.id === id);
@@ -1703,9 +1814,22 @@ async function saveDetay() {
 }
 
 
-function openSporcu() {
+async function openSporcu() {
   document.getElementById('m-sporcu-title').textContent = 'Sporcu Ekle';
   ['s-id','s-ad','s-dogum','s-baslangic','s-tel','s-ucret','s-veli-ad','s-veli-tel','s-veli-meslek'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('s-haftalik-saat').value = '';
+  document.getElementById('s-ders-slotlari').style.display = 'none';
+  sporcuSecilenSlotlar = [];
+  // Yay listesini doldur
+  await loadYayEnvanteri();
+  const yaySelect = document.getElementById('s-kullandigi-yay');
+  yaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
+  yayEnvanteriCache.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y.libre + ' ' + y.tip;
+    opt.textContent = y.libre + ' Libre ' + y.tip;
+    yaySelect.appendChild(opt);
+  });
   document.getElementById('s-baslangic').value = new Date().toISOString().split('T')[0];
   document.getElementById('s-durum').value = 'aktif';
   openModal('m-sporcu');
@@ -1742,7 +1866,15 @@ async function saveSporcu() {
     veli_telefonu: document.getElementById('s-veli-tel').value || null,
     veli_meslegi: document.getElementById('s-veli-meslek').value || null,
   };
+  const haftalikSaat = parseInt(document.getElementById('s-haftalik-saat').value) || 0;
+  const kullandigiYay = document.getElementById('s-kullandigi-yay').value || null;
+  body.haftalik_saat = haftalikSaat || null;
+  body.atanan_yay = kullandigiYay;
+
   if (!body.ad_soyad) { toast('Ad soyad zorunlu', true); return; }
+  if (!haftalikSaat) { toast('Haftalık ders saati seçiniz', true); return; }
+  if (sporcuSecilenSlotlar.length < haftalikSaat) { toast('Lütfen ' + haftalikSaat + ' ders saati seçin (' + sporcuSecilenSlotlar.length + '/' + haftalikSaat + ')', true); return; }
+
   try {
     let sporcuId = id;
     if (id) {
@@ -1751,12 +1883,22 @@ async function saveSporcu() {
     } else {
       const result = await db('sporcular', 'POST', body);
       sporcuId = result[0].id;
-      // Başlangıç tarihinden itibaren ilk ödemeyi otomatik oluştur
       if (baslangic && body.aylik_ucret > 0) {
         await otomatikOdemeOlustur(sporcuId, baslangic, body.aylik_ucret, body.odeme_gunu);
       }
       toast('Sporcu eklendi');
     }
+    // Seçilen slotları ders programına kaydet
+    for (const slot of sporcuSecilenSlotlar) {
+      await db('ders_programi', 'POST', {
+        sporcu_adi: body.ad_soyad,
+        sporcu_id: sporcuId,
+        gun: slot.gun,
+        saat: slot.saat,
+        yay: kullandigiYay
+      }).catch(() => {});
+    }
+    programCache = [];
     closeModal('m-sporcu');
     loadSporcular();
   } catch(e) { toast('Kayıt hatası: ' + e.message, true); }
@@ -2432,6 +2574,168 @@ function sporcuAra(q) {
     bulunan.style.cssText = eskiStyle;
     bulunan.style.transition = 'background 1s';
   }, 5000);
+}
+
+
+// ===== DERS PROGRAMI SLOT SEÇİMİ =====
+
+async function dersSil(dersId) {
+  if (!confirm('Bu ders kaydını silmek istiyor musunuz?')) return;
+  await db('ders_programi', 'DELETE', null, `?id=eq.${dersId}`).catch(() => {});
+  programCache = [];
+  // Listeyi güncelle
+  const sporcuId = document.getElementById('d2-id').value;
+  programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+  const s = sporcularCache.find(x => x.id === sporcuId);
+  const mevcutDersler = programCache.filter(r => r.sporcu_id === sporcuId || (s && r.sporcu_adi === s.ad_soyad));
+  const mevcutEl = document.getElementById('d2-mevcut-dersler');
+  if (mevcutDersler.length) {
+    mevcutEl.innerHTML = mevcutDersler.map(r => 
+      `<span style="display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:20px;padding:3px 10px;font-size:12px;margin:2px 4px 2px 0">
+        ${r.gun} ${r.saat}
+        <span onclick="dersSil('${r.id}')" style="cursor:pointer;margin-left:4px;color:var(--red)">✕</span>
+      </span>`
+    ).join('');
+  } else {
+    mevcutEl.innerHTML = '<span style="font-size:12px;color:var(--muted)">Ders programında kayıt yok</span>';
+  }
+  toast('Ders silindi');
+}
+
+function toggleDersProgrami() {
+  const panel = document.getElementById('ders-programi-panel');
+  const icon = document.getElementById('ders-programi-icon');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    icon.textContent = '▲ Gizle';
+  } else {
+    panel.style.display = 'none';
+    icon.textContent = '▼ Göster';
+  }
+}
+
+async function musaitSlotlariHesapla(yayStr, haricSporcuId) {
+  await loadYayEnvanteri();
+  await loadProgram().catch(() => {});
+  if (!programCache.length) {
+    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+  }
+
+  const gunler = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  const saatler = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+
+  let yayAdet = 999; // Kendi yayı veya bilinmiyorsa sınır yok
+  if (yayStr && !yayStr.toLowerCase().includes('kendi')) {
+    const parts = yayStr.trim().split(' ');
+    const libre = parseInt(parts[0]);
+    const tip = parts.slice(1).join(' ');
+    const envanter = yayEnvanteriCache.find(y => y.libre === libre && y.tip.toLowerCase() === tip.toLowerCase());
+    if (envanter) yayAdet = envanter.adet;
+  }
+
+  const slotlar = [];
+  for (const gun of gunler) {
+    for (const saat of saatler) {
+      // Bu gün/saatte kaç kişi var ve bu yayı kaç kişi kullanıyor?
+      const buSlottakiler = programCache.filter(r => r.gun === gun && r.saat === saat && r.sporcu_id !== haricSporcuId);
+      const yayKullananlar = yayStr && !yayStr.toLowerCase().includes('kendi')
+        ? buSlottakiler.filter(r => r.yay && r.yay.trim().toLowerCase() === yayStr.trim().toLowerCase()).length
+        : 0;
+      const musait = yayKullananlar < yayAdet;
+      if (musait) {
+        slotlar.push({ gun, saat, kullanan: yayKullananlar, toplam: yayAdet });
+      }
+    }
+  }
+  return slotlar;
+}
+
+function slotRender(slotlar, containerEl, kacEl, haftalikSaat, secilenler, onToggle) {
+  if (!slotlar.length) {
+    containerEl.innerHTML = '<div style="font-size:12px;color:var(--red)">Bu yay için müsait ders saati bulunamadı.</div>';
+    return;
+  }
+  kacEl.textContent = haftalikSaat;
+  containerEl.innerHTML = slotlar.map(s => {
+    const secili = secilenler.some(x => x.gun === s.gun && x.saat === s.saat);
+    const dolu = !secili && secilenler.length >= haftalikSaat;
+    return `<div onclick="${dolu ? '' : `toggleSlot(this,'${s.gun}','${s.saat}')`}"
+      style="padding:8px 10px;border:2px solid ${secili ? 'var(--accent)' : 'var(--border)'};
+             border-radius:var(--radius-sm);font-size:12px;cursor:${dolu ? 'not-allowed' : 'pointer'};
+             background:${secili ? 'var(--accent-light)' : dolu ? '#f5f5f5' : 'var(--surface)'};
+             color:${dolu && !secili ? 'var(--muted)' : 'var(--text)'};user-select:none"
+      data-gun="${s.gun}" data-saat="${s.saat}">
+      <div style="font-weight:600">${s.gun}</div>
+      <div style="color:var(--muted)">${s.saat}</div>
+      ${s.toplam < 999 ? `<div style="font-size:10px;color:${s.kullanan > 0 ? '#e67e22' : 'var(--green)'}">${s.kullanan}/${s.toplam} yay kullanımda</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// --- YENİ SPORCU EKLE ---
+let sporcuSecilenSlotlar = [];
+
+async function sporcuDersSaatiGuncelle() {
+  sporcuSecilenSlotlar = [];
+  await sporcuMusaitSlotlariGoster();
+}
+
+async function sporcuMusaitSlotlariGoster() {
+  const haftalikSaat = parseInt(document.getElementById('s-haftalik-saat').value) || 0;
+  const yay = document.getElementById('s-kullandigi-yay').value;
+  const bolum = document.getElementById('s-ders-slotlari');
+  if (!haftalikSaat) { bolum.style.display = 'none'; return; }
+  bolum.style.display = 'block';
+  document.getElementById('s-slot-listesi').innerHTML = '<div style="font-size:12px;color:var(--muted)">Yükleniyor...</div>';
+  const slotlar = await musaitSlotlariHesapla(yay, null);
+  slotRender(slotlar, document.getElementById('s-slot-listesi'), document.getElementById('s-slot-kac'), haftalikSaat, sporcuSecilenSlotlar);
+}
+
+// Ortak toggle fonksiyonu — hangi form olduğunu data attribute'dan anlar
+function toggleSlot(el, gun, saat) {
+  const liste = el.closest('#s-slot-listesi, #d2-slot-listesi');
+  const yeniForm = !!el.closest('#s-slot-listesi');
+  const secilenler = yeniForm ? sporcuSecilenSlotlar : detaySecilenSlotlar;
+  const haftalikSaat = parseInt(document.getElementById(yeniForm ? 's-haftalik-saat' : 'd2-haftalik-saat').value) || 0;
+
+  const idx = secilenler.findIndex(x => x.gun === gun && x.saat === saat);
+  if (idx > -1) {
+    secilenler.splice(idx, 1);
+  } else {
+    if (secilenler.length >= haftalikSaat) return;
+    secilenler.push({ gun, saat });
+  }
+  // Yeniden render
+  liste.querySelectorAll('[data-gun]').forEach(div => {
+    const g = div.dataset.gun, s = div.dataset.saat;
+    const secili = secilenler.some(x => x.gun === g && x.saat === s);
+    const dolu = !secili && secilenler.length >= haftalikSaat;
+    div.style.border = `2px solid ${secili ? 'var(--accent)' : 'var(--border)'}`;
+    div.style.background = secili ? 'var(--accent-light)' : dolu ? '#f5f5f5' : 'var(--surface)';
+    div.style.cursor = dolu ? 'not-allowed' : 'pointer';
+    div.onclick = dolu && !secili ? null : () => toggleSlot(div, g, s);
+    div.querySelector('div').style.color = dolu && !secili ? 'var(--muted)' : 'var(--text)';
+  });
+}
+
+// --- DETAY / DÜZENLE ---
+let detaySecilenSlotlar = [];
+
+async function detayDersSaatiGuncelle() {
+  detaySecilenSlotlar = [];
+  await detayMusaitSlotlariGoster();
+}
+
+async function detayMusaitSlotlariGoster() {
+  const haftalikSaat = parseInt(document.getElementById('d2-haftalik-saat').value) || 0;
+  const yay = document.getElementById('d2-kullandigi-yay').value;
+  const sporcuId = document.getElementById('d2-id').value;
+  const bolum = document.getElementById('d2-ders-slotlari');
+  if (!haftalikSaat) { bolum.style.display = 'none'; return; }
+  bolum.style.display = 'block';
+  document.getElementById('d2-slot-listesi').innerHTML = '<div style="font-size:12px;color:var(--muted)">Yükleniyor...</div>';
+  const slotlar = await musaitSlotlariHesapla(yay, sporcuId);
+  slotRender(slotlar, document.getElementById('d2-slot-listesi'), document.getElementById('d2-slot-kac'), haftalikSaat, detaySecilenSlotlar);
 }
 
 function malzemeToggle(id) {
