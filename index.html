@@ -887,9 +887,9 @@ function secAyYil() {
   loadSporcular();
 }
 
-function toggleOdeme(sporcuId, mevcutDurum, ay) {
+function toggleOdeme(sporcuId, mevcutDurum, ay, kalanTutar) {
   const odendiVal = mevcutDurum && typeof mevcutDurum === 'object' ? mevcutDurum.odendi : mevcutDurum;
-  const tutarVal = mevcutDurum && typeof mevcutDurum === 'object' ? mevcutDurum.tutar : null;
+  const tutarVal = kalanTutar || (mevcutDurum && typeof mevcutDurum === 'object' ? mevcutDurum.tutar : null);
 
   if (odendiVal) {
     // Ödendi işaretini geri al
@@ -1413,7 +1413,7 @@ function sporcuRow(s, odendi, ay) {
   const kalanBorc = !odendiVal && tutarVal && tutarVal > 0 ? tutarVal : null;
   const odemeBtn = s.durum === 'aktif' ? `
     ${kalanBorc ? `<div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:3px">Kalan: ${kalanBorc.toLocaleString('tr-TR')} ₺</div>` : ''}
-    <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${JSON.stringify(odendi)},'${ay||new Date().toISOString().slice(0,7)}')">
+    <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})">
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
     </button>` : '';
   return `<tr style="${rowStyle}">
