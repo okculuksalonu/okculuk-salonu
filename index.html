@@ -1693,7 +1693,7 @@ async function detaySporcu(id) {
   yaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
   // Ders programındaki yayı al — atanan_yay yoksa oradan doldur
   if (!programCache.length) {
-    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+    programCache = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc').catch(() => []);
   }
   const programdakiYay = programCache.find(r => r.sporcu_adi === s.ad_soyad || r.sporcu_id === s.id);
   const gosterilecekYay = s.atanan_yay || (programdakiYay ? programdakiYay.yay : null);
@@ -1730,7 +1730,7 @@ async function detaySporcu(id) {
   d2YaySelect.innerHTML = '<option value="">-- Yay Seç --</option><option value="Kendi Yayı">🏹 Kendi Yayı</option>';
   // Mevcut ders günlerini göster
   if (!programCache.length) {
-    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+    programCache = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc').catch(() => []);
   }
   const mevcutDersler = programCache.filter(r => r.sporcu_id === s.id || r.sporcu_adi === s.ad_soyad);
   const mevcutYay = s.atanan_yay || (mevcutDersler.length ? mevcutDersler[0].yay : null);
@@ -1833,7 +1833,7 @@ async function saveDetay() {
 
       // Çakışma kontrolü
       if (!programCache.length) {
-        programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+        programCache = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc').catch(() => []);
       }
       await loadYayEnvanteri();
       const sporcuDersleri = programCache.filter(r => r.sporcu_adi === adSoyad);
@@ -2125,7 +2125,11 @@ let aktifGun = dersProgramiGunler.includes(bugunAdi) ? bugunAdi : 'Salı';
 async function loadProgram() {
   try {
     if (!programCache.length) {
-      programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc');
+      const rawProgram = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc');
+      programCache = rawProgram.map(r => ({
+        ...r,
+        sporcu_adi: (r.sporcular && r.sporcular.ad_soyad) ? r.sporcular.ad_soyad : r.sporcu_adi
+      }));
     }
 
     // Ders programındaki isimleri sporcular listesiyle senkronize et
@@ -2647,7 +2651,7 @@ async function dersSil(dersId) {
   programCache = [];
   // Listeyi güncelle
   const sporcuId = document.getElementById('d2-id').value;
-  programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+  programCache = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc').catch(() => []);
   const s = sporcularCache.find(x => x.id === sporcuId);
   const mevcutDersler = programCache.filter(r => r.sporcu_id === sporcuId || (s && r.sporcu_adi === s.ad_soyad));
   const mevcutEl = document.getElementById('d2-mevcut-dersler');
@@ -2680,7 +2684,7 @@ async function musaitSlotlariHesapla(yayStr, haricSporcuId) {
   await loadYayEnvanteri();
   await loadProgram().catch(() => {});
   if (!programCache.length) {
-    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+    programCache = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc').catch(() => []);
   }
 
   // Ders programındaki gerçek gün/saat kombinasyonlarını al
@@ -2815,7 +2819,7 @@ async function tumProgramiGoster() {
   openModal('m-tum-program');
 
   if (!programCache.length) {
-    programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+    programCache = await db('ders_programi', 'GET', null, '?select=*,sporcular(ad_soyad)&order=saat.asc').catch(() => []);
   }
 
   const gunler = ['Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
