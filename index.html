@@ -1832,14 +1832,45 @@ async function saveDetay() {
       toast('Ödeme günü ve gelecek vadeler güncellendi');
     }
 
-    // Yay değiştiyse ders programını da güncelle
+    // Yay değiştiyse çakışma kontrolü yap ve ders programını güncelle
     if (body.atanan_yay && eskiSporcu && eskiSporcu.atanan_yay !== body.atanan_yay) {
       const adSoyad = body.ad_soyad || eskiSporcu.ad_soyad;
+
+      // Çakışma kontrolü
+      if (!programCache.length) {
+        programCache = await db('ders_programi', 'GET', null, '?select=*&order=saat.asc').catch(() => []);
+      }
+      await loadYayEnvanteri();
+      const sporcuDersleri = programCache.filter(r => r.sporcu_adi === adSoyad);
+      const yeniYay = body.atanan_yay;
+      const parts = yeniYay.trim().split(' ');
+      const libre = parseInt(parts[0]);
+      const tip = parts.slice(1).join(' ');
+      const envanter = yayEnvanteriCache.find(y => y.libre === libre && y.tip.toLowerCase() === tip.toLowerCase());
+      const yayAdet = envanter ? envanter.adet : 999;
+
+      const cakisanlar = [];
+      for (const ders of sporcuDersleri) {
+        const kullananlar = programCache.filter(r =>
+          r.gun === ders.gun && r.saat === ders.saat &&
+          r.sporcu_adi !== adSoyad &&
+          r.yay && r.yay.trim().toLowerCase() === yeniYay.trim().toLowerCase()
+        ).length;
+        if (kullananlar >= yayAdet) {
+          cakisanlar.push(ders.gun + ' ' + ders.saat);
+        }
+      }
+
+      if (cakisanlar.length > 0) {
+        toast('⚠️ Yay çakışması: ' + cakisanlar.join(', ') + ' derslerinde ' + yeniYay + ' yayı dolu!', true);
+        setTimeout(() => {}, 3000);
+      }
+
       await db('ders_programi', 'PATCH', 
-        { yay: body.atanan_yay },
-        `?sporcu_adi=eq.${encodeURIComponent(adSoyad)}`
+        { yay: yeniYay },
+        '?sporcu_adi=eq.' + encodeURIComponent(adSoyad)
       );
-      programCache = []; // Program cache'i temizle, yeniden yüklensin
+      programCache = [];
     }
 
     closeModal('m-detay');
