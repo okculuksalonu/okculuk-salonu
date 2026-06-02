@@ -2133,7 +2133,23 @@ async function loadProgram() {
     }
 
     // Ders programındaki isimleri sporcular listesiyle senkronize et
-    const sporcular = sporcularCache.length ? sporcularCache : await db('sporcular', 'GET', null, '?select=id,ad_soyad&order=ad_soyad.asc');
+    const sporcular = sporcularCache.length ? sporcularCache : await db('sporcular', 'GET', null, '?select=*&order=ad_soyad.asc');
+
+    // Yaşları otomatik hesapla ve güncelle
+    const bugun = new Date();
+    for (const kayit of programCache) {
+      const sporcu = sporcular.find(s => s.id === kayit.sporcu_id || s.ad_soyad === kayit.sporcu_adi);
+      if (sporcu && sporcu.dogum_tarihi) {
+        const dogum = new Date(sporcu.dogum_tarihi);
+        let yas = bugun.getFullYear() - dogum.getFullYear();
+        const ayFark = bugun.getMonth() - dogum.getMonth();
+        if (ayFark < 0 || (ayFark === 0 && bugun.getDate() < dogum.getDate())) yas--;
+        if (kayit.yas !== yas) {
+          await db('ders_programi', 'PATCH', { yas }, '?id=eq.' + kayit.id).catch(() => {});
+          kayit.yas = yas;
+        }
+      }
+    }
     for (const kayit of programCache) {
       const pAd = (kayit.sporcu_adi || '').trim();
       // Tam eşleşme varsa atla
