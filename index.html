@@ -1330,7 +1330,7 @@ async function loadDashboard() {
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
             <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">${ayAdlari2[parseInt(oncekiAyStr.slice(5,7))]} Kar</div><div style="font-size:15px;font-weight:600;color:var(--green)">${fmtMoney(oncekiKar)}</div></div>
             <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Oran (%${Math.round(oran*100)}) · ${sayi} sporcu</div><div style="font-size:15px;font-weight:600;color:var(--accent)">${fmtMoney(tahminiPay)}</div></div>
-            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Durum</div><div style="font-size:13px;font-weight:600;color:${on15 ? 'var(--red)' : 'var(--muted)'}">${on15 ? 'Ödenecek' : '15'ini bekliyor'}</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Durum</div><div style="font-size:13px;font-weight:600;color:${on15 ? 'var(--red)' : 'var(--muted)'}">${on15 ? 'Ödenecek' : '15 bekleniyor'}</div></div>
           </div>
         </div>`;
       }
