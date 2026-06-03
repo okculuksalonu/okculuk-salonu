@@ -1299,6 +1299,43 @@ async function loadDashboard() {
     // Otomatik Koray Öğüt pay hesaplama — her ay kontrol et
     await hesaplaKorayPay(buAyVeriler, buAyStr);
 
+    // Koray pay tahmini kartı — bir önceki ayın verilerinden anlık hesapla
+    const oncekiAyStr = (() => {
+      const d = new Date(new Date().getFullYear(), buAyNo - 2, 1);
+      return d.toISOString().slice(0,7);
+    })();
+    let korayPayKarti = '';
+    try {
+      const [oncekiOdemeSayisi, oncekiAyGelirGider] = await Promise.all([
+        db('aylik_odeme_durum', 'GET', null, `?ay=eq.${oncekiAyStr}&odendi=eq.true&select=sporcu_id,tutar`),
+        db('gelir_gider', 'GET', null, `?select=*&tarih=gte.${oncekiAyStr}-01&tarih=lte.${oncekiAyStr}-31`)
+      ]);
+      const sayi = oncekiOdemeSayisi.length;
+      let oran = 0;
+      if (sayi >= 61) oran = 0.12;
+      else if (sayi >= 51) oran = 0.11;
+      else if (sayi >= 40) oran = 0.10;
+      if (oran > 0) {
+        const oncekiGelir = oncekiAyGelirGider.filter(g => g.tur === 'gelir').reduce((a,b) => a + Number(b.tutar), 0);
+        const oncekiGider = oncekiAyGelirGider.filter(g => g.tur === 'gider' && g.kategori !== 'pay').reduce((a,b) => a + Number(b.tutar), 0);
+        const oncekiKar = oncekiGelir - oncekiGider;
+        const tahminiPay = oncekiKar > 0 ? Math.round(oncekiKar * oran) : 0;
+        const bugun = new Date();
+        const on15 = bugun.getDate() >= 15 && bugun.getMonth() + 1 === buAyNo;
+        const ayAdlari2 = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+        korayPayKarti = `<div class="card" style="padding:12px 16px;margin-bottom:10px;border-left:3px solid var(--accent)">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+            ${on15 ? '💰' : '⏳'} Koray Öğüt Pay — ${ayAdlari2[buAyNo]} ${new Date().getFullYear()}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">${ayAdlari2[parseInt(oncekiAyStr.slice(5,7))]} Kar</div><div style="font-size:15px;font-weight:600;color:var(--green)">${fmtMoney(oncekiKar)}</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Oran (%${Math.round(oran*100)}) · ${sayi} sporcu</div><div style="font-size:15px;font-weight:600;color:var(--accent)">${fmtMoney(tahminiPay)}</div></div>
+            <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Durum</div><div style="font-size:13px;font-weight:600;color:${on15 ? 'var(--red)' : 'var(--muted)'}">${on15 ? 'Ödenecek' : '15'ini bekliyor'}</div></div>
+          </div>
+        </div>`;
+      }
+    } catch(e) {}
+
     // Gider detaylarını kategoriye göre grupla
     const giderDetay = {};
     buAyVeriler.filter(g => g.tur === 'gider').forEach(g => {
@@ -1308,7 +1345,7 @@ async function loadDashboard() {
       giderDetay[kat].kayitlar.push(g);
     });
 
-    const yilSatirlar = yilSirali.map(yil => {
+    const yilSatirlar = (await Promise.all(yilSirali.map(async yil => {
       const kar = yillar[yil].gelir - yillar[yil].gider;
       // O yılın gider detayları
       const yilGiderDetay = {};
@@ -1333,6 +1370,44 @@ async function loadDashboard() {
         maas:'Maaş', bakim:'Bakım/Onarım', diger:'Diğer'
       };
 
+      // Tahmini/ödenen pay hesapla
+      const bugun = new Date();
+      const secAy = buAyNo;
+      const secYil = parseInt(yil);
+      const ayIn14u = new Date(secYil, secAy - 1, 14);
+      const odenenPayVar = yilGiderDetay['pay'] > 0;
+      let tahminPayHtml = '';
+
+      if (!odenenPayVar) {
+        // Pay henüz ödenmemiş — tahmini göster
+        try {
+          const oncekiAyNo = secAy === 1 ? 12 : secAy - 1;
+          const oncekiYilNo = secAy === 1 ? secYil - 1 : secYil;
+          const oncekiAyStr2 = oncekiYilNo + '-' + String(oncekiAyNo).padStart(2,'0');
+          const [oncekiOdSayisi, oncekiGG] = await Promise.all([
+            db('aylik_odeme_durum', 'GET', null, `?ay=eq.${oncekiAyStr2}&odendi=eq.true&select=sporcu_id`),
+            db('gelir_gider', 'GET', null, `?select=*&tarih=gte.${oncekiAyStr2}-01&tarih=lte.${oncekiAyStr2}-31`)
+          ]);
+          const sayi2 = oncekiOdSayisi.length;
+          let oran2 = 0;
+          if (sayi2 >= 61) oran2 = 0.12;
+          else if (sayi2 >= 51) oran2 = 0.11;
+          else if (sayi2 >= 40) oran2 = 0.10;
+          if (oran2 > 0) {
+            const og = oncekiGG.filter(g => g.tur === 'gelir').reduce((a,b) => a + Number(b.tutar), 0);
+            const ogider = oncekiGG.filter(g => g.tur === 'gider' && g.kategori !== 'pay').reduce((a,b) => a + Number(b.tutar), 0);
+            const okar = og - ogider;
+            const tahPay = okar > 0 ? Math.round(okar * oran2) : 0;
+            const etiket = bugun >= ayIn14u ? 'Koray Öğüt Pay' : 'Tahmini Pay';
+            const renk = bugun >= ayIn14u ? 'var(--red)' : '#e67e22';
+            tahminPayHtml = `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+              <span style="color:var(--muted)">${etiket}${bugun < ayIn14u ? ' (tahmini)' : ''}</span>
+              <span style="color:${renk};font-weight:500">${fmtMoney(tahPay)}</span>
+            </div>`;
+          }
+        } catch(e) {}
+      }
+
       const giderListesi = Object.entries(yilGiderDetay)
         .filter(([kat]) => otomatikKat.includes(kat))
         .map(([kat, toplam]) => 
@@ -1340,7 +1415,7 @@ async function loadDashboard() {
             <span style="color:var(--muted)">${katEtiketleri[kat] || kat}</span>
             <span style="color:var(--red);font-weight:500">${fmtMoney(toplam)}</span>
           </div>`
-        ).join('') + (elleGirilenToplam > 0 ? `
+        ).join('') + tahminPayHtml + (elleGirilenToplam > 0 ? `
           <div style="border-bottom:1px solid var(--border)">
             <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.querySelector('.chevron').style.transform==='rotate(180deg)'?'':'rotate(180deg)'" 
               style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
@@ -1407,7 +1482,7 @@ async function loadDashboard() {
             ${giderListesi}
           </div>` : ''}
         </div>`;
-    }).join('');
+    }))).join('');
 
     // Malzeme uyarısı kontrol et (varyant ve beden dahil)
     try {
