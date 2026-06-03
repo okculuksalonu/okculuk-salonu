@@ -1492,6 +1492,43 @@ async function loadDashboard() {
         </div>`;
     }))).join('');
 
+    // Sabit gider onay kartı — kira/sigorta o ay girilmemişse göster
+    try {
+      const kilaVar = buAyVeriler.some(g => g.kategori === 'kira' && g.tur === 'gider');
+      const sigortaVar = buAyVeriler.some(g => g.kategori === 'sigorta' && g.tur === 'gider');
+      const eskiKira = buAyVeriler.find(g => g.kategori === 'kira' && g.tur === 'gider');
+      const eskiSigorta = buAyVeriler.find(g => g.kategori === 'sigorta' && g.tur === 'gider');
+      const varsayilanKira = eskiKira ? eskiKira.tutar : 20000;
+      const varsayilanSigorta = eskiSigorta ? eskiSigorta.tutar : 10157;
+
+      if (!kilaVar || !sigortaVar) {
+        const eskiSabitGider = document.getElementById('sabit-gider-karti');
+        if (eskiSabitGider) eskiSabitGider.remove();
+        const karti = document.createElement('div');
+        karti.id = 'sabit-gider-karti';
+        karti.style.cssText = 'background:#FFF8EC;border:1px solid #F5C842;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px';
+        karti.innerHTML = `
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">📋 ${ayAdi} ${new Date().getFullYear()} Sabit Giderler</div>
+          ${!kilaVar ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--muted);min-width:60px">Kira</span>
+            <input id="sabit-kira" type="number" value="${varsayilanKira}" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface);color:var(--text)">
+            <span style="font-size:12px;color:var(--muted)">₺</span>
+          </div>` : ''}
+          ${!sigortaVar ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span style="font-size:12px;color:var(--muted);min-width:60px">Sigorta</span>
+            <input id="sabit-sigorta" type="number" value="${varsayilanSigorta}" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface);color:var(--text)">
+            <span style="font-size:12px;color:var(--muted)">₺</span>
+          </div>` : ''}
+          <button onclick="sabitGiderOnayla('${buAyStr}','${new Date().getFullYear()}',${!kilaVar},${!sigortaVar})" 
+            class="btn primary" style="width:100%">✓ Onayla ve Ekle</button>
+        `;
+        document.getElementById('yil-kartlari').before(karti);
+      } else {
+        const eskiSabitGider = document.getElementById('sabit-gider-karti');
+        if (eskiSabitGider) eskiSabitGider.remove();
+      }
+    } catch(e) {}
+
     // Malzeme uyarısı kontrol et (varyant ve beden dahil)
     try {
       const [tumMalzemeler, tumVaryantlar, tumBedenler] = await Promise.all([
@@ -3029,6 +3066,27 @@ async function tumProgramiGoster() {
   html += '</tbody></table>';
   icerik.innerHTML = html;
 }
+async function sabitGiderOnayla(ayStr, yil, kiraEkle, sigortaEkle) {
+  const tarih = yil + '-' + ayStr + '-01';
+  try {
+    if (kiraEkle) {
+      const kira = parseFloat(document.getElementById('sabit-kira').value) || 0;
+      if (kira > 0) await db('gelir_gider', 'POST', {
+        tarih, aciklama: 'Kira', kategori: 'kira', tur: 'gider', tutar: kira
+      });
+    }
+    if (sigortaEkle) {
+      const sigorta = parseFloat(document.getElementById('sabit-sigorta').value) || 0;
+      if (sigorta > 0) await db('gelir_gider', 'POST', {
+        tarih, aciklama: 'Sigorta', kategori: 'sigorta', tur: 'gider', tutar: sigorta
+      });
+    }
+    document.getElementById('sabit-gider-karti').remove();
+    toast('✓ Sabit giderler eklendi');
+    loadDashboard();
+  } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
 function malzemeToggle(id) {
   const grup = document.getElementById('varyant-grup-' + id);
   const icon = document.getElementById('toggle-icon-' + id);
