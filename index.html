@@ -1212,7 +1212,43 @@ function secAy(ayNo, btn) {
   loadDashboard();
 }
 
+async function syncOdemelerToGelir() {
+  // Son 15 günde alınan ama gelir_gider'e girilmemiş ödemeleri ekle
+  try {
+    const bugun = new Date();
+    const on5gunOnce = new Date(bugun - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const [sonOdemeler, mevcutGelirler, tumSporcular] = await Promise.all([
+      db('aylik_odeme_durum', 'GET', null, '?select=*&odendi=eq.true&odeme_tarihi=gte.' + on5gunOnce),
+      db('gelir_gider', 'GET', null, '?select=aciklama&kategori=eq.aidat&tur=eq.gelir'),
+      db('sporcular', 'GET', null, '?select=id,ad_soyad')
+    ]);
+
+    const mevcutAciklamalar = new Set(mevcutGelirler.map(g => g.aciklama));
+    const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+    for (const odeme of sonOdemeler) {
+      const sporcu = tumSporcular.find(s => s.id === odeme.sporcu_id);
+      if (!sporcu) continue;
+      const ay = odeme.ay; // '2026-05'
+      const ayAdi = ayAdlari[parseInt(ay.slice(5,7))];
+      const aciklama = sporcu.ad_soyad + ' - ' + ay.slice(0,4) + ' ' + ayAdi + ' aidat';
+      if (!mevcutAciklamalar.has(aciklama)) {
+        await db('gelir_gider', 'POST', {
+          tarih: ay + '-01',
+          aciklama,
+          kategori: 'aidat',
+          tur: 'gelir',
+          tutar: odeme.tutar || 0
+        }).catch(() => {});
+        mevcutAciklamalar.add(aciklama);
+      }
+    }
+  } catch(e) { console.error('Sync hatası:', e); }
+}
+
 async function loadDashboard() {
+  await syncOdemelerToGelir();
   try {
     const buAyNo = secilenAy || new Date().getMonth() + 1;
     const buAyStr = String(buAyNo).padStart(2, '0');
