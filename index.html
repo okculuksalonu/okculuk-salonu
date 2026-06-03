@@ -1130,6 +1130,15 @@ async function hesaplaKorayPay(ayVeriler, ayStr) {
   const mevcutPay = ayVeriler.find(g => g.kategori === 'pay' && g.tur === 'gider');
   if (mevcutPay) return;
 
+  // Sadece ayın 15'inden sonra hesapla
+  const bugun = new Date();
+  const buAyIlk = new Date(ayStr + '-01');
+  const ayIn15i = new Date(ayStr + '-15');
+  // Seçilen ay içinde bulunuyorsak 15'ini bekle
+  if (bugun.getFullYear() === buAyIlk.getFullYear() && 
+      bugun.getMonth() === buAyIlk.getMonth() && 
+      bugun < ayIn15i) return;
+
   // Bir önceki ayın sporcu sayısını baz al
   const oncekiAy = (() => {
     const d = new Date(ayStr + '-01');
@@ -1147,8 +1156,10 @@ async function hesaplaKorayPay(ayVeriler, ayStr) {
     else if (sayi >= 40) oran = 0.10;
     else return; // 40'ın altında pay yok
 
-    const gelir = ayVeriler.filter(g => g.tur === 'gelir').reduce((a, b) => a + Number(b.tutar), 0);
-    const gider = ayVeriler.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
+    // Payı bir önceki ayın gelir/giderinden hesapla
+    const oncekiAyVeriler = await db('gelir_gider', 'GET', null, `?select=*&tarih=gte.${oncekiAy}-01&tarih=lte.${oncekiAy}-31`);
+    const gelir = oncekiAyVeriler.filter(g => g.tur === 'gelir').reduce((a, b) => a + Number(b.tutar), 0);
+    const gider = oncekiAyVeriler.filter(g => g.tur === 'gider' && g.kategori !== 'pay').reduce((a, b) => a + Number(b.tutar), 0);
     const kar = gelir - gider;
     if (kar <= 0) return;
 
