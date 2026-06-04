@@ -2557,10 +2557,10 @@ async function loadGelir() {
     const totalGider = data.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
     const kar = totalGelir - totalGider;
     document.getElementById('gelir-stats').innerHTML = `
-      <div class="stat"><div class="stat-label">Toplam Gelir</div><div class="stat-val green">${fmtMoney(totalGelir)}</div></div>
-      <div class="stat"><div class="stat-label">Toplam Gider</div><div class="stat-val red">${fmtMoney(totalGider)}</div></div>
-      <div class="stat"><div class="stat-label">Net Kar</div><div class="stat-val ${kar>=0?'green':'red'}">${fmtMoney(kar)}</div></div>
-      <div class="stat"><div class="stat-label">Kar Marjı</div><div class="stat-val purple">${totalGelir > 0 ? Math.round((kar/totalGelir)*100) : 0}%</div></div>
+      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer"><div class="stat-label">Toplam Gelir</div><div class="stat-val green" data-val="${fmtMoney(totalGelir)}">••••••</div></div>
+      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer"><div class="stat-label">Toplam Gider</div><div class="stat-val red" data-val="${fmtMoney(totalGider)}">••••••</div></div>
+      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer"><div class="stat-label">Net Kar</div><div class="stat-val ${kar>=0?'green':'red'}" data-val="${fmtMoney(kar)}">••••••</div></div>
+      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer"><div class="stat-label">Kar Marjı</div><div class="stat-val purple" data-val="${totalGelir > 0 ? Math.round((kar/totalGelir)*100) : 0}%">••••••</div></div>
     `;
     const tbody = document.getElementById('gelir-tbody');
     if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Henüz kayıt yok</td></tr>'; return; }
@@ -2997,6 +2997,15 @@ async function tumProgramiGoster() {
 
 
 
+
+function toggleGelirStat(el) {
+  const val = el.querySelector('[data-val]');
+  if (val.textContent === '••••••') {
+    val.textContent = val.dataset.val;
+  } else {
+    val.textContent = '••••••';
+  }
+}
 
 function malzemeToggle(id) {
   const grup = document.getElementById('varyant-grup-' + id);
