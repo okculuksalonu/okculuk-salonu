@@ -311,7 +311,7 @@
       </div>
       <div class="card">
         <table>
-          <thead><tr><th>Sporcu</th><th>Başlangıç</th><th>Doğum</th><th>Veli</th><th>Veli Tel.</th><th>Aidat</th><th>Ücret</th><th>İşlemler</th></tr></thead>
+          <thead><tr><th>Sporcu</th><th>Ödeme Tarihi</th><th>Doğum</th><th>Veli</th><th>Veli Tel.</th><th>Aidat</th><th>Ücret</th><th>İşlemler</th></tr></thead>
           <tbody id="sporcu-tbody"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
         </table>
       </div>
@@ -1569,7 +1569,13 @@ function sporcuRow(s, odendi, ay) {
     ${!odendiVal ? `<button class="btn sm" onclick="borcuDuzenle('${s.id}','${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})">✏️ Borç</button>` : ''}` : '';
   return `<tr style="${rowStyle}">
     <td><div class="sporcu-row"><div class="avatar">${initials(s.ad_soyad)}</div><div><div style="font-weight:500">${s.ad_soyad}</div><div style="font-size:11px;color:var(--muted)">${s.telefon||''}</div></div></div></td>
-    <td>${fmtDate(s.baslangic_tarihi)}</td>
+    <td>${(() => {
+      if (odendiVal && odendi && odendi.odeme_tarihi) return '<span style="color:var(--green);font-weight:500">' + fmtDate(odendi.odeme_tarihi) + '</span>';
+      const gun = s.odeme_gunu || (s.baslangic_tarihi ? new Date(s.baslangic_tarihi).getDate() : 1);
+      const hedefAyStr = ay || new Date().toISOString().slice(0,7);
+      const tahminTarih = hedefAyStr + '-' + String(gun).padStart(2,'0');
+      return '<span style="color:var(--muted)">' + fmtDate(tahminTarih) + '</span>';
+    })()}</td>
     <td>${fmtDate(s.dogum_tarihi)}</td>
     <td>${s.veli_adi||'-'}</td>
     <td>${s.veli_telefonu||'-'}</td>
