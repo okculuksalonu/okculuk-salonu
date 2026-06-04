@@ -1565,7 +1565,8 @@ function sporcuRow(s, odendi, ay) {
   const odemeBtn = s.durum === 'aktif' ? `
     <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})" title="${kalanBorc ? 'Kalan: ' + kalanBorc.toLocaleString('tr-TR') + ' ₺' : ''}">
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
-    </button>` : '';
+    </button>
+    ${!odendiVal ? `<button class="btn sm" onclick="borcuDuzenle('${s.id}','${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})">✏️ Borç</button>` : ''}` : '';
   return `<tr style="${rowStyle}">
     <td><div class="sporcu-row"><div class="avatar">${initials(s.ad_soyad)}</div><div><div style="font-weight:500">${s.ad_soyad}</div><div style="font-size:11px;color:var(--muted)">${s.telefon||''}</div></div></div></td>
     <td>${fmtDate(s.baslangic_tarihi)}</td>
@@ -3017,6 +3018,20 @@ function toggleGelirStat(el) {
   } else {
     val.textContent = '••••••';
   }
+}
+
+async function borcuDuzenle(sporcuId, ay, mevcutTutar) {
+  const s = sporcularCache.find(x => x.id === sporcuId);
+  const ad = s ? s.ad_soyad : '';
+  const yeniTutar = prompt(`${ad} - ${ay} borcu\nMevcut: ${mevcutTutar} ₺\n\nYeni tutarı girin:`);
+  if (yeniTutar === null) return;
+  const tutar = parseFloat(yeniTutar);
+  if (isNaN(tutar) || tutar < 0) { toast('Geçersiz tutar', true); return; }
+  try {
+    await db('aylik_odeme_durum', 'PATCH', { tutar }, `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`);
+    toast('Borç güncellendi');
+    loadSporcular();
+  } catch(e) { toast('Hata: ' + e.message, true); }
 }
 
 function malzemeToggle(id) {
