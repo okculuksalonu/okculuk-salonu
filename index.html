@@ -1019,9 +1019,9 @@ async function odemeKaydet() {
     } catch(e2) { toast('Hata: ' + e2.message, true); return; }
   }
 
-  // Gelir tablosuna ekle — o ayın 1'i ile kaydet (mayıs ödemesi → mayıs geliri)
+  // Gelir tablosuna ekle — ödemenin alındığı gerçek tarihle kaydet
   if (!ertelendi && tutar > 0) {
-    const gelirTarih = ay + '-01'; // Örn: 2026-05-01
+    const gelirTarih = tarih || new Date().toISOString().split('T')[0];
     const gelirAciklama = (s ? s.ad_soyad : '') + ' - ' + ay.slice(0,4) + ' ' + 
       ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][parseInt(ay.slice(5,7))] + ' aidat';
     await db('gelir_gider', 'POST', {
