@@ -1601,55 +1601,15 @@ async function loadSporcular() {
     odemeCache = {};
     hedefAyOdeme.forEach(o => { odemeCache[o.sporcu_id] = { odendi: o.odendi, tutar: o.tutar }; });
 
-    // Son 6 ayda kaydı olmayan aktif sporcular için otomatik odendi=false kaydı oluştur
-    const gercekBugunAy = new Date().toISOString().slice(0,7);
-    const aktifSporcular = data.filter(s => s.durum === 'aktif' && s.aylik_ucret > 0);
-    const d6 = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 7, 1);
-    const altiAyOnceStr = d6.getFullYear() + '-' + String(d6.getMonth()+1).padStart(2,'0');
-
-    // Tüm mevcut kayıtları çek (son 6 ay)
-    const mevcutKayitlar = await db('aylik_odeme_durum', 'GET', null,
-      `?ay=gte.${altiAyOnceStr}&ay=lt.${hedefAy}&select=sporcu_id,ay`).catch(() => []);
-    const mevcutSet = new Set(mevcutKayitlar.map(k => k.sporcu_id + '|' + k.ay));
-
-    // Geçmiş ayları döngüle ve eksik kayıtları oluştur
-    for (let i = 1; i <= 6; i++) {
-      const d = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 1 - i, 1);
-      const ayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-      if (ayStr < altiAyOnceStr) break;
-      if (ayStr >= gercekBugunAy) continue; // Gelecek veya bu ay için oluşturma
-      for (const s of aktifSporcular) {
-        if (!s.baslangic_tarihi || s.baslangic_tarihi.slice(0,7) > ayStr) continue;
-        if (!mevcutSet.has(s.id + '|' + ayStr)) {
-          await db('aylik_odeme_durum', 'POST',
-            { sporcu_id: s.id, ay: ayStr, odendi: false, tutar: s.aylik_ucret },
-            '?on_conflict=sporcu_id,ay'
-          ).catch(() => {});
-          mevcutSet.add(s.id + '|' + ayStr);
-        }
-      }
-    }
-
-    // Geçmiş aylara göre grupla
+    // Geçmiş aylara göre grupla — tutar > 0 olanları al
     const gecmisAyMap = {};
     tumGecmisOdeme.forEach(o => {
       if (!gecmisAyMap[o.ay]) gecmisAyMap[o.ay] = new Map();
-      gecmisAyMap[o.ay].set(o.sporcu_id, o.tutar);
+      // tutar null ise sporcu'nun aylik_ucretini kullan
+      const sporcuData = data.find(s => s.id === o.sporcu_id);
+      const gercekTutar = o.tutar || (sporcuData ? sporcuData.aylik_ucret : 0);
+      if (gercekTutar > 0) gecmisAyMap[o.ay].set(o.sporcu_id, gercekTutar);
     });
-    // Yeni oluşturulanları da ekle
-    for (let i = 1; i <= 6; i++) {
-      const d = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 1 - i, 1);
-      const ayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-      if (ayStr < altiAyOnceStr) break;
-      if (ayStr >= gercekBugunAy) continue;
-      for (const s of aktifSporcular) {
-        if (!s.baslangic_tarihi || s.baslangic_tarihi.slice(0,7) > ayStr) continue;
-        if (!gecmisAyMap[ayStr]) gecmisAyMap[ayStr] = new Map();
-        if (!gecmisAyMap[ayStr].has(s.id)) {
-          gecmisAyMap[ayStr].set(s.id, s.aylik_ucret);
-        }
-      }
-    }
 
 
 
