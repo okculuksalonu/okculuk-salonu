@@ -1223,43 +1223,7 @@ function secAy(ayNo, btn) {
   loadDashboard();
 }
 
-async function syncOdemelerToGelir() {
-  // Son 15 günde alınan ama gelir_gider'e girilmemiş ödemeleri ekle
-  try {
-    const bugun = new Date();
-    const on5gunOnce = new Date(bugun - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
-    const [sonOdemeler, mevcutGelirler, tumSporcular] = await Promise.all([
-      db('aylik_odeme_durum', 'GET', null, '?select=*&odendi=eq.true&odeme_tarihi=gte.' + on5gunOnce),
-      db('gelir_gider', 'GET', null, '?select=aciklama&kategori=eq.aidat&tur=eq.gelir'),
-      db('sporcular', 'GET', null, '?select=id,ad_soyad')
-    ]);
-
-    const mevcutAciklamalar = new Set(mevcutGelirler.map(g => g.aciklama));
-    const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-
-    for (const odeme of sonOdemeler) {
-      const sporcu = tumSporcular.find(s => s.id === odeme.sporcu_id);
-      if (!sporcu) continue;
-      const ay = odeme.ay; // '2026-05'
-      const ayAdi = ayAdlari[parseInt(ay.slice(5,7))];
-      const aciklama = sporcu.ad_soyad + ' - ' + ay.slice(0,4) + ' ' + ayAdi + ' aidat';
-      if (!mevcutAciklamalar.has(aciklama)) {
-        await db('gelir_gider', 'POST', {
-          tarih: ay + '-01',
-          aciklama,
-          kategori: 'aidat',
-          tur: 'gelir',
-          tutar: odeme.tutar || 0
-        }).catch(() => {});
-        mevcutAciklamalar.add(aciklama);
-      }
-    }
-  } catch(e) { console.error('Sync hatası:', e); }
-}
-
 async function loadDashboard() {
-  await syncOdemelerToGelir();
   try {
     const buAyNo = secilenAy || new Date().getMonth() + 1;
     const buAyStr = String(buAyNo).padStart(2, '0');
@@ -1415,7 +1379,7 @@ async function loadDashboard() {
             <span style="color:var(--muted)">${katEtiketleri[kat] || kat}</span>
             <span style="color:var(--red);font-weight:500">${fmtMoney(toplam)}</span>
           </div>`
-        ).join('') + tahminPayHtml + (elleGirilenToplam > 0 ? `
+        ).join('') + (elleGirilenToplam > 0 ? `
           <div style="border-bottom:1px solid var(--border)">
             <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.querySelector('.chevron').style.transform==='rotate(180deg)'?'':'rotate(180deg)'" 
               style="display:flex;justify-content:space-between;padding:4px 0;cursor:pointer;font-size:12px">
@@ -1465,17 +1429,9 @@ async function loadDashboard() {
             </div>
           </div>` : '');
 
-      // O ayın sporcu sayısını çek
-      const aySporcuSayisi = await db('aylik_odeme_durum', 'GET', null,
-        `?ay=eq.${yil}-${buAyStr}&select=sporcu_id`).catch(() => []);
-      const sporcuSayisiAy = aySporcuSayisi.length;
-
       return `
         <div class="card" style="padding:12px 16px;margin-bottom:0">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">${ayAdi} ${yil}</div>
-            ${sporcuSayisiAy > 0 ? `<div style="font-size:11px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:20px;border:1px solid var(--border)">${sporcuSayisiAy} sporcu</div>` : ''}
-          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">${ayAdi} ${yil}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
             <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gelir</div><div style="font-size:16px;font-weight:600;color:var(--green)">${fmtMoney(yillar[yil].gelir)}</div></div>
             <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Gider</div><div style="font-size:16px;font-weight:600;color:var(--red)">${fmtMoney(yillar[yil].gider)}</div></div>
@@ -1491,43 +1447,6 @@ async function loadDashboard() {
           </div>` : ''}
         </div>`;
     }))).join('');
-
-    // Sabit gider onay kartı — kira/sigorta o ay girilmemişse göster
-    try {
-      const kilaVar = buAyVeriler.some(g => g.kategori === 'kira' && g.tur === 'gider');
-      const sigortaVar = buAyVeriler.some(g => g.kategori === 'sigorta' && g.tur === 'gider');
-      const eskiKira = buAyVeriler.find(g => g.kategori === 'kira' && g.tur === 'gider');
-      const eskiSigorta = buAyVeriler.find(g => g.kategori === 'sigorta' && g.tur === 'gider');
-      const varsayilanKira = eskiKira ? eskiKira.tutar : 20000;
-      const varsayilanSigorta = eskiSigorta ? eskiSigorta.tutar : 10157;
-
-      if (!kilaVar || !sigortaVar) {
-        const eskiSabitGider = document.getElementById('sabit-gider-karti');
-        if (eskiSabitGider) eskiSabitGider.remove();
-        const karti = document.createElement('div');
-        karti.id = 'sabit-gider-karti';
-        karti.style.cssText = 'background:#FFF8EC;border:1px solid #F5C842;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px';
-        karti.innerHTML = `
-          <div style="font-size:13px;font-weight:600;margin-bottom:10px">📋 ${ayAdi} ${new Date().getFullYear()} Sabit Giderler</div>
-          ${!kilaVar ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <span style="font-size:12px;color:var(--muted);min-width:60px">Kira</span>
-            <input id="sabit-kira" type="number" value="${varsayilanKira}" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface);color:var(--text)">
-            <span style="font-size:12px;color:var(--muted)">₺</span>
-          </div>` : ''}
-          ${!sigortaVar ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <span style="font-size:12px;color:var(--muted);min-width:60px">Sigorta</span>
-            <input id="sabit-sigorta" type="number" value="${varsayilanSigorta}" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface);color:var(--text)">
-            <span style="font-size:12px;color:var(--muted)">₺</span>
-          </div>` : ''}
-          <button onclick="sabitGiderOnayla('${buAyStr}','${new Date().getFullYear()}',${!kilaVar},${!sigortaVar})" 
-            class="btn primary" style="width:100%">✓ Onayla ve Ekle</button>
-        `;
-        document.getElementById('yil-kartlari').before(karti);
-      } else {
-        const eskiSabitGider = document.getElementById('sabit-gider-karti');
-        if (eskiSabitGider) eskiSabitGider.remove();
-      }
-    } catch(e) {}
 
     // Malzeme uyarısı kontrol et (varyant ve beden dahil)
     try {
@@ -2630,22 +2549,10 @@ async function loadGelir() {
     const totalGider = data.filter(g => g.tur === 'gider').reduce((a, b) => a + Number(b.tutar), 0);
     const kar = totalGelir - totalGider;
     document.getElementById('gelir-stats').innerHTML = `
-      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer">
-        <div class="stat-label">Toplam Gelir</div>
-        <div class="stat-val green" data-val="${fmtMoney(totalGelir)}">••••••</div>
-      </div>
-      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer">
-        <div class="stat-label">Toplam Gider</div>
-        <div class="stat-val red" data-val="${fmtMoney(totalGider)}">••••••</div>
-      </div>
-      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer">
-        <div class="stat-label">Net Kar</div>
-        <div class="stat-val ${kar>=0?'green':'red'}" data-val="${fmtMoney(kar)}">••••••</div>
-      </div>
-      <div class="stat" onclick="toggleGelirStat(this)" style="cursor:pointer">
-        <div class="stat-label">Kar Marjı</div>
-        <div class="stat-val purple" data-val="${totalGelir > 0 ? Math.round((kar/totalGelir)*100) : 0}%">••••••</div>
-      </div>
+      <div class="stat"><div class="stat-label">Toplam Gelir</div><div class="stat-val green">${fmtMoney(totalGelir)}</div></div>
+      <div class="stat"><div class="stat-label">Toplam Gider</div><div class="stat-val red">${fmtMoney(totalGider)}</div></div>
+      <div class="stat"><div class="stat-label">Net Kar</div><div class="stat-val ${kar>=0?'green':'red'}">${fmtMoney(kar)}</div></div>
+      <div class="stat"><div class="stat-label">Kar Marjı</div><div class="stat-val purple">${totalGelir > 0 ? Math.round((kar/totalGelir)*100) : 0}%</div></div>
     `;
     const tbody = document.getElementById('gelir-tbody');
     if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Henüz kayıt yok</td></tr>'; return; }
@@ -3079,35 +2986,9 @@ async function tumProgramiGoster() {
   html += '</tbody></table>';
   icerik.innerHTML = html;
 }
-async function sabitGiderOnayla(ayStr, yil, kiraEkle, sigortaEkle) {
-  const tarih = yil + '-' + ayStr + '-01';
-  try {
-    if (kiraEkle) {
-      const kira = parseFloat(document.getElementById('sabit-kira').value) || 0;
-      if (kira > 0) await db('gelir_gider', 'POST', {
-        tarih, aciklama: 'Kira', kategori: 'kira', tur: 'gider', tutar: kira
-      });
-    }
-    if (sigortaEkle) {
-      const sigorta = parseFloat(document.getElementById('sabit-sigorta').value) || 0;
-      if (sigorta > 0) await db('gelir_gider', 'POST', {
-        tarih, aciklama: 'Sigorta', kategori: 'sigorta', tur: 'gider', tutar: sigorta
-      });
-    }
-    document.getElementById('sabit-gider-karti').remove();
-    toast('✓ Sabit giderler eklendi');
-    loadDashboard();
-  } catch(e) { toast('Hata: ' + e.message, true); }
-}
 
-function toggleGelirStat(el) {
-  const val = el.querySelector('[data-val]');
-  if (val.textContent === '••••••') {
-    val.textContent = val.dataset.val;
-  } else {
-    val.textContent = '••••••';
-  }
-}
+
+
 
 function malzemeToggle(id) {
   const grup = document.getElementById('varyant-grup-' + id);
