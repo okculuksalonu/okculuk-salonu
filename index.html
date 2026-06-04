@@ -1031,7 +1031,7 @@ async function odemeKaydet() {
   if (!ertelendi && tutar > 0) {
     const gerekenTarihVal = document.getElementById('oa-gereken-tarih').value;
     const gelirAy = gerekenTarihVal ? gerekenTarihVal.slice(0,7) : ay;
-    const gelirTarih = tarih || new Date().toISOString().split('T')[0];
+    const gelirTarih = gerekenTarihVal || (ay + '-01');
     const gelirAciklama = (s ? s.ad_soyad : '') + ' - ' + gelirAy.slice(0,4) + ' ' + 
       ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][parseInt(gelirAy.slice(5,7))] + ' aidat';
     await db('gelir_gider', 'POST', {
