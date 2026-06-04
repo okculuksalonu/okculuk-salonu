@@ -1668,23 +1668,44 @@ async function loadSporcular() {
     // Ay label güncelle
     document.getElementById('secili-ay-label').textContent = ayBaslikStr(hedefAy);
 
-    const [data, hedefAyOdeme, tumGecmisOdeme] = await Promise.all([
+    const [data, hedefAyOdeme, tumGecmisOdeme, tumGecmisTumKayitlar] = await Promise.all([
       db('sporcular', 'GET', null, '?select=*&order=ad_soyad.asc'),
       db('aylik_odeme_durum', 'GET', null, `?ay=eq.${hedefAy}&select=sporcu_id,odendi,tutar`),
-      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&odendi=eq.false&select=sporcu_id,ay,tutar&order=ay.asc`)
+      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&odendi=eq.false&select=sporcu_id,ay,tutar&order=ay.asc`),
+      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&select=sporcu_id,ay,odendi&order=ay.asc`)
     ]);
     sporcularCache = data;
 
     odemeCache = {};
     hedefAyOdeme.forEach(o => { odemeCache[o.sporcu_id] = { odendi: o.odendi, tutar: o.tutar }; });
 
-    // Geçmiş aylara göre grupla
-    // Sadece ödenmemişler geldi, aylarına göre grupla
+    // Geçmiş aylara göre grupla — hem odendi=false olanlar hem de hiç kaydı olmayanlar
     const gecmisAyMap = {}; // { 'YYYY-MM': Map(sporcu_id -> tutar) }
     tumGecmisOdeme.forEach(o => {
       if (!gecmisAyMap[o.ay]) gecmisAyMap[o.ay] = new Map();
       gecmisAyMap[o.ay].set(o.sporcu_id, o.tutar);
     });
+
+    // O ayda aktif olan ama hiç kaydı olmayan sporcuları da ekle
+    const kayitliSporcuAylar = new Set(tumGecmisTumKayitlar.map(o => o.sporcu_id + '|' + o.ay));
+    
+    // Geçmiş ayların listesini bul (hedefAy'dan önceki son 6 ay)
+    const bugun = new Date();
+    for (let i = 1; i <= 6; i++) {
+      const d = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 1 - i, 1);
+      const ayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (ayStr < '2026-01') break; // Çok eskiye gitme
+      data.forEach(s => {
+        if (s.durum !== 'aktif') return;
+        if (!s.baslangic_tarihi || s.baslangic_tarihi.slice(0,7) > ayStr) return;
+        if (!s.aylik_ucret || s.aylik_ucret <= 0) return;
+        // Bu ay kaydı yok ve gecmisAyMap'te de yok
+        if (!kayitliSporcuAylar.has(s.id + '|' + ayStr) && !gecmisAyMap[ayStr]?.has(s.id)) {
+          if (!gecmisAyMap[ayStr]) gecmisAyMap[ayStr] = new Map();
+          gecmisAyMap[ayStr].set(s.id, s.aylik_ucret);
+        }
+      });
+    }
 
     const tbody = document.getElementById('sporcu-tbody');
     const aktifler = data.filter(s => {
@@ -1716,7 +1737,8 @@ async function loadSporcular() {
       gecmisAylar.forEach(ay => {
         const ayOdeme = gecmisAyMap[ay]; // Set of sporcu_id
         const kalanlar = data.filter(s => {
-          return ayOdeme.has(s.id); // Map içinde varsa ödenmemiş demek (aktif veya pasif)
+          if (s.durum !== 'aktif') return false;
+          return ayOdeme.has(s.id); // Map içinde varsa ödenmemiş demek
         });
         if (kalanlar.length > 0) {
           html += `<tr style="background:#FCEBEB"><td colspan="10" style="font-weight:600;font-size:12px;color:#A32D2D;padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">⚠️ ${ayBaslikStr(ay)}'dan Kalanlar (${kalanlar.length})</td></tr>`;
