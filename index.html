@@ -1668,11 +1668,10 @@ async function loadSporcular() {
     // Ay label güncelle
     document.getElementById('secili-ay-label').textContent = ayBaslikStr(hedefAy);
 
-    const [data, hedefAyOdeme, tumGecmisOdeme, tumGecmisTumKayitlar] = await Promise.all([
+    const [data, hedefAyOdeme, tumGecmisOdeme] = await Promise.all([
       db('sporcular', 'GET', null, '?select=*&order=ad_soyad.asc'),
       db('aylik_odeme_durum', 'GET', null, `?ay=eq.${hedefAy}&select=sporcu_id,odendi,tutar`),
-      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&odendi=eq.false&select=sporcu_id,ay,tutar&order=ay.asc`),
-      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&select=sporcu_id,ay,odendi&order=ay.asc`)
+      db('aylik_odeme_durum', 'GET', null, `?ay=lt.${hedefAy}&odendi=eq.false&select=sporcu_id,ay,tutar&order=ay.asc`)
     ]);
     sporcularCache = data;
 
@@ -1686,25 +1685,7 @@ async function loadSporcular() {
       gecmisAyMap[o.ay].set(o.sporcu_id, o.tutar);
     });
 
-    // O ayda aktif olan ama hiç kaydı olmayan sporcuları da ekle
-    const kayitliSporcuAylar = new Set(tumGecmisTumKayitlar.map(o => o.sporcu_id + '|' + o.ay));
-    
-    // Geçmiş ayların listesini bul (hedefAy'dan önceki son 6 ay)
-    for (let i = 1; i <= 6; i++) {
-      const d = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 1 - i, 1);
-      const ayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-      if (ayStr < '2026-01') break; // Çok eskiye gitme
-      data.forEach(s => {
-        if (s.durum !== 'aktif') return;
-        if (!s.baslangic_tarihi || s.baslangic_tarihi.slice(0,7) > ayStr) return;
-        if (!s.aylik_ucret || s.aylik_ucret <= 0) return;
-        // Bu ay kaydı yok ve gecmisAyMap'te de yok
-        if (!kayitliSporcuAylar.has(s.id + '|' + ayStr) && !gecmisAyMap[ayStr]?.has(s.id)) {
-          if (!gecmisAyMap[ayStr]) gecmisAyMap[ayStr] = new Map();
-          gecmisAyMap[ayStr].set(s.id, s.aylik_ucret);
-        }
-      });
-    }
+
 
     const tbody = document.getElementById('sporcu-tbody');
     const aktifler = data.filter(s => {
