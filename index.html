@@ -740,6 +740,10 @@
         <label>Ödeme Tarihi</label>
         <input id="oa-tarih" type="date">
       </div>
+      <div class="form-group full">
+        <label>Ödenmesi Gereken Tarih</label>
+        <input id="oa-gereken-tarih" type="date">
+      </div>
     </div>
     <div id="oa-kalan-info" style="display:none;margin-top:10px;padding:8px 12px;background:#FAEEDA;border-radius:var(--radius-sm);font-size:12px;color:#854F0B"></div>
     <div id="oa-kalan-secim" style="display:none;margin-top:10px">
@@ -928,6 +932,10 @@ function toggleOdeme(sporcuId, mevcutDurum, ay, kalanTutar) {
   document.getElementById('oa-beklenen').value = gosterilecekBeklenen || '';
   document.getElementById('oa-tutar').value = gosterilecekBeklenen || '';
   document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
+  // Ödenmesi gereken tarihi hesapla
+  const odemeGunu = s ? (s.odeme_gunu || (s.baslangic_tarihi ? new Date(s.baslangic_tarihi).getDate() : 1)) : 1;
+  const gerekenTarih = hedefAy + '-' + String(odemeGunu).padStart(2,'0');
+  document.getElementById('oa-gereken-tarih').value = gerekenTarih;
   document.getElementById('oa-kalan-info').style.display = 'none';
   document.getElementById('oa-kalan-secim').style.display = 'none';
   document.getElementById('oa-kalan-borc').checked = true;
@@ -1019,11 +1027,13 @@ async function odemeKaydet() {
     } catch(e2) { toast('Hata: ' + e2.message, true); return; }
   }
 
-  // Gelir tablosuna ekle — ödemenin alındığı gerçek tarihle kaydet
+  // Gelir tablosuna ekle — ödenmesi gereken tarihin ayına ekle, gerçek alınma tarihi ile
   if (!ertelendi && tutar > 0) {
+    const gerekenTarihVal = document.getElementById('oa-gereken-tarih').value;
+    const gelirAy = gerekenTarihVal ? gerekenTarihVal.slice(0,7) : ay;
     const gelirTarih = tarih || new Date().toISOString().split('T')[0];
-    const gelirAciklama = (s ? s.ad_soyad : '') + ' - ' + ay.slice(0,4) + ' ' + 
-      ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][parseInt(ay.slice(5,7))] + ' aidat';
+    const gelirAciklama = (s ? s.ad_soyad : '') + ' - ' + gelirAy.slice(0,4) + ' ' + 
+      ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][parseInt(gelirAy.slice(5,7))] + ' aidat';
     await db('gelir_gider', 'POST', {
       tarih: gelirTarih,
       aciklama: gelirAciklama,
@@ -1031,6 +1041,8 @@ async function odemeKaydet() {
       tur: 'gelir',
       tutar
     }).catch(() => {});
+    // Genel bakış verilerini güncelle
+    if (typeof loadDashboard === 'function' && document.getElementById('page-dashboard')?.classList.contains('active')) loadDashboard();
   }
 
   closeModal('m-odeme-al');
