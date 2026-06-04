@@ -729,8 +729,8 @@
     </div>
     <div class="form-grid">
       <div class="form-group full">
-        <label>Beklenen Tutar</label>
-        <div id="oa-beklenen" style="font-size:15px;font-weight:600;color:var(--green);padding:4px 0"></div>
+        <label>Beklenen Tutar (₺)</label>
+        <input id="oa-beklenen" type="number" placeholder="Beklenen tutar" style="font-weight:600;color:var(--green)" oninput="document.getElementById('oa-tutar').oninput && document.getElementById('oa-tutar').oninput.call(document.getElementById('oa-tutar'))">
       </div>
       <div class="form-group full">
         <label>Alınan Tutar (₺)</label>
@@ -925,8 +925,8 @@ function toggleOdeme(sporcuId, mevcutDurum, ay, kalanTutar) {
   document.getElementById('oa-sporcu-ad').textContent = s ? s.ad_soyad : '';
   document.getElementById('oa-ay-label').textContent = ayAdlari[parseInt(ayNo)] + ' ' + yil + ' ödemesi';
   const gosterilecekBeklenen = kalanTutar || beklenenTutar;
-  document.getElementById('oa-beklenen').textContent = gosterilecekBeklenen ? gosterilecekBeklenen.toLocaleString('tr-TR') + ' ₺' : '-';
-  document.getElementById('oa-tutar').value = beklenenTutar || '';
+  document.getElementById('oa-beklenen').value = gosterilecekBeklenen || '';
+  document.getElementById('oa-tutar').value = gosterilecekBeklenen || '';
   document.getElementById('oa-tarih').value = new Date().toISOString().split('T')[0];
   document.getElementById('oa-kalan-info').style.display = 'none';
   document.getElementById('oa-kalan-secim').style.display = 'none';
@@ -991,7 +991,7 @@ async function odemeKaydet() {
 
   // Beklenen tutar: o aydaki gerçek borç (toggleOdeme'den gelir), yoksa aylık ücret
   const s = sporcularCache.find(x => x.id === sporcuId);
-  const _oa_beklenen = parseFloat(document.getElementById('oa-beklenen').textContent.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+  const _oa_beklenen = parseFloat(document.getElementById('oa-beklenen').value) || 0;
   const beklenenTutar = _oa_beklenen || (s ? (s.aylik_ucret || 0) : 0);
   const kalanBorc = beklenenTutar - tutar;
   const kalanSil = document.getElementById('oa-kalan-sil') && document.getElementById('oa-kalan-sil').checked;
