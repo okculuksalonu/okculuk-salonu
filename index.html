@@ -1591,8 +1591,9 @@ async function loadSporcular() {
       db('sporcular', 'GET', null, '?select=*&order=ad_soyad.asc'),
       db('aylik_odeme_durum', 'GET', null, `?ay=eq.${hedefAy}&select=sporcu_id,odendi,tutar`),
 (() => {
-        const d = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 7, 1);
-        const altiAyOnce = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        const hd = new Date(hedefAy + '-01');
+        hd.setMonth(hd.getMonth() - 6);
+        const altiAyOnce = hd.getFullYear() + '-' + String(hd.getMonth()+1).padStart(2,'0');
         return db('aylik_odeme_durum', 'GET', null, `?ay=gte.${altiAyOnce}&ay=lt.${hedefAy}&odendi=eq.false&select=sporcu_id,ay,tutar&order=ay.asc`);
       })()
     ]);
