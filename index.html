@@ -1690,7 +1690,6 @@ async function loadSporcular() {
     const kayitliSporcuAylar = new Set(tumGecmisTumKayitlar.map(o => o.sporcu_id + '|' + o.ay));
     
     // Geçmiş ayların listesini bul (hedefAy'dan önceki son 6 ay)
-    const bugun = new Date();
     for (let i = 1; i <= 6; i++) {
       const d = new Date(parseInt(hedefAy.slice(0,4)), parseInt(hedefAy.slice(5,7)) - 1 - i, 1);
       const ayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
