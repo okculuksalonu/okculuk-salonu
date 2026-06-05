@@ -1568,7 +1568,7 @@ function sporcuRow(s, odendi, ay) {
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
     </button>
     ${!odendiVal ? `<button class="btn sm" onclick="borcuDuzenle('${s.id}','${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})">✏️ Borç</button>` : ''}
-    ${!odendiVal && s.veli_telefonu ? `<button class="btn sm" style="background:#25D366;color:#fff;border:none" onclick="whatsappBildir('${s.ad_soyad.replace(/'/g,"\'")}','${s.veli_adi||''}','${s.veli_telefonu}','${ay||new Date().toISOString().slice(0,7)}',${tutarVal||s.aylik_ucret||0})">📱 WA</button>` : ''}` : '';
+    ${!odendiVal && s.veli_telefonu ? `<button class="btn sm" style="background:#25D366;color:#fff;border:none" onclick="whatsappBildir('${s.ad_soyad.replace(/'/g,"\'")}','${s.veli_adi||''}','${s.veli_telefonu}','${ay||new Date().toISOString().slice(0,7)}',${tutarVal||s.aylik_ucret||0},${s.odeme_gunu||new Date(s.baslangic_tarihi||new Date()).getDate()})">📱 WA</button>` : ''}` : '';
   return `<tr style="${rowStyle}">
     <td><div class="sporcu-row"><div class="avatar">${initials(s.ad_soyad)}</div><div><div style="font-weight:500">${s.ad_soyad}</div><div style="font-size:11px;color:var(--muted)">${s.telefon||''}</div></div></div></td>
     <td>${(() => {
@@ -3082,14 +3082,16 @@ function programSporcuOtoDoldur(val) {
   }
 }
 
-function whatsappBildir(sporcuAd, veliAd, veliTel, ay, tutar) {
+function whatsappBildir(sporcuAd, veliAd, veliTel, ay, tutar, odemeGun) {
   const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const ayAdi = ayAdlari[parseInt(ay.slice(5,7))] + ' ' + ay.slice(0,4);
+  const gun = odemeGun || 1;
+  const odemeTarihi = gun + ' ' + ayAdlari[parseInt(ay.slice(5,7))];
   const mesaj = `🎯 Edremit Nuk Okçuluk 🎯
 
 Sayın ${veliAd || 'Veli'},
 
-${sporcuAd} için ${ayAdi} ayı aidat ödemesi henüz gerçekleşmemiştir. Ödeme tutarı ${tutar.toLocaleString('tr-TR')} ₺'dir.
+${sporcuAd} için ${odemeTarihi} tarihindeki aidat ödemesi geçmiş olup tutarı ${tutar.toLocaleString('tr-TR')} ₺'dir.
 
 Bilginize sunarız.
 Edremit Nuk Okçuluk 🎯`;
