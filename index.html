@@ -1005,14 +1005,15 @@ async function odemeKaydet() {
   const kalanSil = document.getElementById('oa-kalan-sil') && document.getElementById('oa-kalan-sil').checked;
   const tamOdendi = ertelendi ? false : (kalanBorc <= 0 || kalanSil);
 
+  const ertelemeTarihi = document.getElementById('oa-ertelendi-tarih-input').value;
   const kayit = { 
     sporcu_id: sporcuId, 
     ay, 
     odendi: tamOdendi, 
-    tutar: tamOdendi ? tutar : kalanBorc, // Tam ödendiyse ödenen tutar, eksikse kalan borç
+    tutar: ertelendi ? 0 : (tamOdendi ? tutar : kalanBorc), // Ertelendiyse 0 yaz (listeden düşsün)
     odeme_tarihi: tamOdendi ? tarih : null,
     notlar: ertelendi 
-      ? ('Ertelendi' + (document.getElementById('oa-ertelendi-tarih-input').value ? ' → ' + document.getElementById('oa-ertelendi-tarih-input').value : ''))
+      ? ('Ertelendi' + (ertelemeTarihi ? ' → ' + ertelemeTarihi : ''))
       : (!tamOdendi && tutar > 0 ? ('Kismi odeme: ' + tutar.toLocaleString('tr-TR') + ' TL alindi, ' + kalanBorc.toLocaleString('tr-TR') + ' TL kaldi') : null)
   };
 
@@ -1021,7 +1022,7 @@ async function odemeKaydet() {
   } catch(e) {
     try {
       await db('aylik_odeme_durum', 'PATCH',
-        { odendi: tamOdendi, tutar: tamOdendi ? tutar : kalanBorc, odeme_tarihi: tamOdendi ? tarih : null },
+        { odendi: tamOdendi, tutar: ertelendi ? 0 : (tamOdendi ? tutar : kalanBorc), odeme_tarihi: tamOdendi ? tarih : null },
         `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`
       );
     } catch(e2) { toast('Hata: ' + e2.message, true); return; }
