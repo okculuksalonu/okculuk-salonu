@@ -3085,14 +3085,14 @@ function programSporcuOtoDoldur(val) {
 function whatsappBildir(sporcuAd, veliAd, veliTel, ay, tutar) {
   const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const ayAdi = ayAdlari[parseInt(ay.slice(5,7))] + ' ' + ay.slice(0,4);
-  const mesaj = `Sayın ${veliAd || 'Veli'},
+  const mesaj = `🎯 Edremit Nuk Okçuluk 🎯
+
+Sayın ${veliAd || 'Veli'},
 
 ${sporcuAd} için ${ayAdi} ayı aidat ödemesi henüz gerçekleşmemiştir. Ödeme tutarı ${tutar.toLocaleString('tr-TR')} ₺'dir.
 
 Bilginize sunarız.
-Edremit Nuk Okçuluk`;
-  const tel = veliTel.replace(/[^0-9]/g, '');
-  const telFormat = tel.startsWith('0') ? '90' + tel.slice(1) : tel.startsWith('90') ? tel : '90' + tel;
+Edremit Nuk Okçuluk 🎯`;
   const url = `https://wa.me/${telFormat}?text=${encodeURIComponent(mesaj)}`;
   window.open(url, '_blank');
 }
