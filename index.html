@@ -1960,6 +1960,16 @@ async function saveDetay() {
       toast('Ödeme günü ve gelecek vadeler güncellendi');
     }
 
+    // Aylık ücret değiştiyse bu ay ve sonrasındaki ödenmemiş kayıtları güncelle
+    const eskiUcret = eskiSporcu ? eskiSporcu.aylik_ucret : null;
+    if (eskiUcret && body.aylik_ucret && eskiUcret !== body.aylik_ucret) {
+      const buAy = new Date().toISOString().slice(0,7);
+      await db('aylik_odeme_durum', 'PATCH', 
+        { tutar: body.aylik_ucret },
+        `?sporcu_id=eq.${id}&ay=gte.${buAy}&odendi=eq.false`
+      ).catch(() => {});
+    }
+
     // Yay değiştiyse çakışma kontrolü yap ve ders programını güncelle
     if (body.atanan_yay && eskiSporcu && eskiSporcu.atanan_yay !== body.atanan_yay) {
       const adSoyad = body.ad_soyad || eskiSporcu.ad_soyad;
