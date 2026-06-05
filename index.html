@@ -3087,15 +3087,15 @@ function whatsappBildir(sporcuAd, veliAd, veliTel, ay, tutar, odemeGun) {
   const ayAdi = ayAdlari[parseInt(ay.slice(5,7))] + ' ' + ay.slice(0,4);
   const gun = odemeGun || 1;
   const odemeTarihi = gun + ' ' + ayAdlari[parseInt(ay.slice(5,7))];
-  const mesaj = `🎯 Edremit Nuk Okçuluk 🎯
+  const mesaj = '\uD83C\uDFF9 Edremit Nuk Ok\u00E7uluk \uD83C\uDFF9\n\n' +
+    'Say\u0131n ' + (veliAd || 'Veli') + ',\n\n' +
+    sporcuAd + ' i\u00E7in ' + odemeTarihi + ' tarihindeki aidat \u00F6demesi ge\u00E7mi\u015F olup tutar\u0131 ' + tutar.toLocaleString('tr-TR') + ' \u20BA\'dir.\n\n' +
+    'Bilginize sunar\u0131z.\nEdremit Nuk Ok\u00E7uluk \uD83C\uDFF9';
 
-Sayın ${veliAd || 'Veli'},
 
-${sporcuAd} için ${odemeTarihi} tarihindeki aidat ödemesi geçmiş olup tutarı ${tutar.toLocaleString('tr-TR')} ₺'dir.
 
-Bilginize sunarız.
-Edremit Nuk Okçuluk 🎯`;
-  const tel = veliTel.replace(/[^0-9]/g, '');
+
+
   const telFormat = tel.startsWith('0') ? '90' + tel.slice(1) : tel.startsWith('90') ? tel : '90' + tel;
   const url = `https://wa.me/${telFormat}?text=${encodeURIComponent(mesaj)}`;
   window.open(url, '_blank');
