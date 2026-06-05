@@ -3093,6 +3093,8 @@ ${sporcuAd} için ${ayAdi} ayı aidat ödemesi henüz gerçekleşmemiştir. Öde
 
 Bilginize sunarız.
 Edremit Nuk Okçuluk 🎯`;
+  const tel = veliTel.replace(/[^0-9]/g, '');
+  const telFormat = tel.startsWith('0') ? '90' + tel.slice(1) : tel.startsWith('90') ? tel : '90' + tel;
   const url = `https://wa.me/${telFormat}?text=${encodeURIComponent(mesaj)}`;
   window.open(url, '_blank');
 }
