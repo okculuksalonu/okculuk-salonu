@@ -568,7 +568,7 @@
     </div>
     <input type="hidden" id="ps-id">
     <div class="form-grid">
-      <div class="form-group full"><label>Sporcu Adı</label><input id="ps-ad" type="text" placeholder="Ad Soyad"></div>
+      <div class="form-group full"><label>Sporcu Adı</label><input id="ps-ad" type="text" placeholder="Ad Soyad" oninput="programSporcuOtoDoldur(this.value)" list="ps-ad-liste"><datalist id="ps-ad-liste"></datalist></div>
       <div class="form-group"><label>Yaş</label><input id="ps-yas" type="number" placeholder="12"></div>
       <div class="form-group"><label>Yay</label><input id="ps-yay" type="text" placeholder="24 Metal"></div>
       <div class="form-group full"><label>Alan</label>
@@ -2267,10 +2267,11 @@ async function loadProgram() {
     // Ders programındaki isimleri sporcular listesiyle senkronize et
     const sporcular = sporcularCache.length ? sporcularCache : await db('sporcular', 'GET', null, '?select=*&order=ad_soyad.asc');
 
-    // Yaşları otomatik hesapla ve güncelle
+    // Yaşları otomatik hesapla ve güncelle (sadece sporcu_id bağlı kayıtlar)
     const bugun = new Date();
     for (const kayit of programCache) {
-      const sporcu = sporcular.find(s => s.id === kayit.sporcu_id || s.ad_soyad === kayit.sporcu_adi);
+      if (!kayit.sporcu_id) continue; // sporcu_id yoksa dokunma
+      const sporcu = sporcular.find(s => s.id === kayit.sporcu_id);
       if (sporcu && sporcu.dogum_tarihi) {
         const dogum = new Date(sporcu.dogum_tarihi);
         let yas = bugun.getFullYear() - dogum.getFullYear();
@@ -2283,6 +2284,7 @@ async function loadProgram() {
       }
     }
     for (const kayit of programCache) {
+      if (!kayit.sporcu_id) continue; // sporcu_id yoksa ismi değiştirme
       const pAd = (kayit.sporcu_adi || '').trim();
       // Tam eşleşme varsa atla
       if (sporcular.some(s => s.ad_soyad === pAd)) continue;
@@ -2560,10 +2562,10 @@ async function programSporucuSil() {
   if (!id || !confirm('Bu sporcuyu ders programından silmek istiyor musunuz?')) return;
   try {
     await db('ders_programi', 'DELETE', null, `?id=eq.${id}`);
-    programCache = programCache.filter(x => x.id !== id);
+    programCache = [];
     closeModal('m-program-sporcu');
     toast('Silindi');
-    renderProgram();
+    await loadProgram();
   } catch(e) { toast('Hata', true); }
 }
 
@@ -3038,6 +3040,34 @@ async function borcuDuzenle(sporcuId, ay, mevcutTutar) {
     toast('Borç güncellendi');
     loadSporcular();
   } catch(e) { toast('Hata: ' + e.message, true); }
+}
+
+function programSporcuOtoDoldur(val) {
+  if (!sporcularCache.length) return;
+  const eslesme = sporcularCache.find(s => s.ad_soyad.toLowerCase() === val.toLowerCase());
+  if (eslesme) {
+    // Yaş hesapla
+    if (eslesme.dogum_tarihi) {
+      const d = new Date(eslesme.dogum_tarihi);
+      const bugun = new Date();
+      let yas = bugun.getFullYear() - d.getFullYear();
+      if (bugun.getMonth() < d.getMonth() || (bugun.getMonth() === d.getMonth() && bugun.getDate() < d.getDate())) yas--;
+      document.getElementById('ps-yas').value = yas;
+    }
+    // Yay bilgisi
+    if (eslesme.atanan_yay) {
+      document.getElementById('ps-yay').value = eslesme.atanan_yay;
+    }
+  }
+
+  // Autocomplete listesi
+  const liste = document.getElementById('ps-ad-liste');
+  if (liste) {
+    liste.innerHTML = sporcularCache
+      .filter(s => s.ad_soyad.toLowerCase().includes(val.toLowerCase()))
+      .map(s => `<option value="${s.ad_soyad}">`)
+      .join('');
+  }
 }
 
 function malzemeToggle(id) {
