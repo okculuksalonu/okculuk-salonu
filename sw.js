@@ -1,16 +1,16 @@
-const CACHE_NAME = 'edremit-nuk-v1';
+const CACHE_NAME = 'edremit-nuk-v2';
 const STATIC_ASSETS = [
   '/okculuk-salonu/',
   '/okculuk-salonu/index.html'
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS).catch(() => {});
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -19,9 +19,8 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -30,8 +29,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Her zaman önce ağdan dene (network-first), cache'e düşme sadece offline durumda
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then((response) => {
         if (response && response.status === 200) {
           const clone = response.clone();
