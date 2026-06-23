@@ -2488,6 +2488,7 @@ function updateTasiSaatler(gun, secilenSaat) {
   const saatler = [...new Set(programCache.filter(r => r.gun === gun).map(r => r.saat))].sort();
   const sel = document.getElementById('ps-tasi-saat');
   sel.innerHTML = saatler.map(s => `<option value="${s}" ${s === secilenSaat ? 'selected' : ''}>${s}</option>`).join('');
+  if (!saatler.length) sel.innerHTML = '<option value="">Saat yok</option>';
 }
 
 async function programSporucuTasi() {
@@ -2499,11 +2500,10 @@ async function programSporucuTasi() {
   if (!yeniSaat) { toast('Saat seçiniz', true); return; }
   try {
     await db('ders_programi', 'PATCH', { gun: yeniGun, saat: yeniSaat, salon: yeniSalon }, `?id=eq.${id}`);
-    const idx = programCache.findIndex(x => x.id === id);
-    if (idx > -1) { programCache[idx].gun = yeniGun; programCache[idx].saat = yeniSaat; programCache[idx].salon = yeniSalon; }
+    programCache = [];
     closeModal('m-program-sporcu');
-    toast(`✓ ${programCache.find(x=>x.id===id)?.sporcu_adi || 'Sporcu'} taşındı`);
-    renderProgram();
+    toast(`✓ Sporcu taşındı`);
+    await loadProgram();
   } catch(e) { toast('Hata: ' + e.message, true); }
 }
 
