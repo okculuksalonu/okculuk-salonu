@@ -3123,7 +3123,12 @@ async function borcuDuzenle(sporcuId, ay, mevcutTutar) {
   const tutar = parseFloat(yeniTutar);
   if (isNaN(tutar) || tutar < 0) { toast('Geçersiz tutar', true); return; }
   try {
-    await db('aylik_odeme_durum', 'PATCH', { tutar }, `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`);
+    if (tutar === 0) {
+      // Borcu sıfırla — o kaydı sil (listeden tamamen çıksın)
+      await db('aylik_odeme_durum', 'DELETE', null, `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}&odendi=eq.false`);
+    } else {
+      await db('aylik_odeme_durum', 'PATCH', { tutar }, `?sporcu_id=eq.${sporcuId}&ay=eq.${ay}`);
+    }
     toast('Borç güncellendi');
     loadSporcular();
   } catch(e) { toast('Hata: ' + e.message, true); }
