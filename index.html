@@ -1608,7 +1608,7 @@ function sporcuRow(s, odendi, ay) {
   const gectiVal = odendi && typeof odendi === 'object' ? odendi.gecti : false;
   const rowStyle = odendiVal ? 'background:#B6E8D3;' : (gectiVal ? 'background:#F5C0C0;' : '');
   const kalanBorc = !odendiVal && tutarVal && tutarVal > 0 ? tutarVal : null;
-  const odemeBtn = s.durum === 'aktif' ? `
+  const odemeBtn = (s.durum === 'aktif' || (!odendiVal && tutarVal > 0)) ? `
     <button class="btn sm ${odendiVal ? '' : 'primary'}" onclick="toggleOdeme('${s.id}',${odendiVal},'${ay||new Date().toISOString().slice(0,7)}',${tutarVal||0})" title="${kalanBorc ? 'Kalan: ' + kalanBorc.toLocaleString('tr-TR') + ' ₺' : ''}">
       ${odendiVal ? '✓ Ödendi' : '💰 Ödeme Aldım'}
     </button>
