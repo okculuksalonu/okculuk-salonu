@@ -249,6 +249,10 @@
     </button>
   </nav>
   <div class="sidebar-footer">
+    <div id="son-islemler-panel" style="border-top:1px solid var(--border);padding:8px 0;margin-bottom:4px;display:none">
+      <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:0 16px;margin-bottom:6px">Son İşlemler</div>
+      <div id="son-islemler-liste" style="max-height:140px;overflow-y:auto"></div>
+    </div>
     <div class="conn-status">
       <div class="conn-dot" id="conn-dot"></div>
       <span id="conn-text">Bağlanıyor...</span>
@@ -1124,6 +1128,8 @@ function toast(msg, err=false) {
   t.style.background = err ? '#E24B4A' : '#1D9E75';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+  // Başarılı işlemleri kaydet
+  if (!err) islemKaydet(msg);
 }
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -1199,7 +1205,7 @@ async function hesaplaKorayPay(ayVeriler, ayStr) {
   })();
 
   try {
-    const sporcuSayisi = await db('aylik_odeme_durum', 'GET', null, `?ay=eq.${oncekiAy}&select=sporcu_id`);
+    const sporcuSayisi = await db('aylik_odeme_durum', 'GET', null, `?ay=eq.${oncekiAy}&odendi=eq.true&select=sporcu_id`);
     const sayi = sporcuSayisi.length;
 
     let oran = 0;
@@ -1394,7 +1400,7 @@ async function loadDashboard() {
       const odenenPayVar = yilGiderDetay['pay'] > 0;
       let tahminPayHtml = '';
 
-      if (!odenenPayVar) {
+      if (!odenenPayVar && bugunD < ayIn14u) {
         // Pay henüz ödenmemiş — tahmini göster
         try {
           const oncekiAyNo = secAy === 1 ? 12 : secAy - 1;
@@ -3181,6 +3187,20 @@ Edremit Nuk Okçuluk 🎯`;
 function toggleMobileMenu() {
   document.querySelector('.sidebar').classList.toggle('mobile-open');
   document.getElementById('mobile-overlay').classList.toggle('show');
+}
+
+function islemKaydet(mesaj) {
+  const panel = document.getElementById('son-islemler-panel');
+  const liste = document.getElementById('son-islemler-liste');
+  if (!panel || !liste) return;
+  panel.style.display = 'block';
+  const saat = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const item = document.createElement('div');
+  item.style.cssText = 'font-size:11px;padding:3px 16px;color:var(--text);border-bottom:1px solid var(--border);line-height:1.4';
+  item.innerHTML = `<span style="color:var(--muted);margin-right:4px">${saat}</span>${mesaj}`;
+  liste.insertBefore(item, liste.firstChild);
+  // Max 20 kayıt tut
+  while (liste.children.length > 20) liste.removeChild(liste.lastChild);
 }
 
 function malzemeToggle(id) {
