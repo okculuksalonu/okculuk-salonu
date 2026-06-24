@@ -1710,8 +1710,7 @@ async function loadSporcular() {
       gecmisAylar.forEach(ay => {
         const ayOdeme = gecmisAyMap[ay]; // Set of sporcu_id
         const kalanlar = data.filter(s => {
-          if (s.durum !== 'aktif') return false;
-          return ayOdeme.has(s.id); // Map içinde varsa ödenmemiş demek
+          return ayOdeme.has(s.id); // Aktif veya pasif, borcu varsa göster
         });
         if (kalanlar.length > 0) {
           html += `<tr style="background:#FCEBEB"><td colspan="10" style="font-weight:600;font-size:12px;color:#A32D2D;padding:8px 14px;letter-spacing:.4px;text-transform:uppercase">⚠️ ${ayBaslikStr(ay)}'dan Kalanlar (${kalanlar.length})</td></tr>`;
