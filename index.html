@@ -1285,6 +1285,7 @@ async function loadDashboard() {
   try {
     const buAyNo = secilenAy || new Date().getMonth() + 1;
     const buAyStr = String(buAyNo).padStart(2, '0');
+    const buAyTamStr = new Date().getFullYear() + '-' + buAyStr;
     const ayAdlari = ['','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
     const ayAdi = ayAdlari[buAyNo];
 
@@ -1319,11 +1320,12 @@ async function loadDashboard() {
 
     // Her yıl için ayrı satır
     // Otomatik Koray Öğüt pay hesaplama — her ay kontrol et
-    await hesaplaKorayPay(buAyVeriler, buAyStr);
+    await hesaplaKorayPay(buAyVeriler, buAyTamStr);
 
     // Koray pay tahmini kartı — bir önceki ayın verilerinden anlık hesapla
     const oncekiAyStr = (() => {
-      const d = new Date(new Date().getFullYear(), buAyNo - 2, 1);
+      const d = new Date(buAyStr + '-01');
+      d.setMonth(d.getMonth() - 1);
       return d.toISOString().slice(0,7);
     })();
     let korayPayKarti = '';
