@@ -1784,6 +1784,14 @@ async function toggleDurum(id, mevcutDurum) {
       toast(s.ad_soyad + ' pasif yapıldı — ders programından çıkarıldı');
     } else {
       const s2 = sporcularCache.find(x => x.id === id);
+      // Aktif yapılınca bulunduğumuz ay için ödeme kaydı oluştur (yoksa)
+      if (s2 && s2.aylik_ucret > 0) {
+        const buAy = new Date().toISOString().slice(0,7);
+        const mevcut = await db('aylik_odeme_durum', 'GET', null, `?sporcu_id=eq.${id}&ay=eq.${buAy}&select=id`).catch(() => []);
+        if (!mevcut.length) {
+          await db('aylik_odeme_durum', 'POST', { sporcu_id: id, ay: buAy, odendi: false, tutar: s2.aylik_ucret }, '?on_conflict=sporcu_id,ay').catch(() => {});
+        }
+      }
       toast((s2 ? s2.ad_soyad + ' ' : '') + 'aktif yapıldı');
     }
     loadSporcular();
